@@ -286,10 +286,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   /* TOPBAR — condense on mobile */
   .topbar{padding:0 14px;height:56px}
   .logo-sub{display:none}
-  .logo-text{font-size:15px}
+  .logo-text{display:none}
   .logo-hex{width:30px;height:30px;font-size:13px}
-  .user-chip{display:none} /* hide email chip, too wide */
-  .topbar-right{gap:7px}
+  .user-chip{display:none}
+  .topbar-right{gap:7px;margin-left:auto}
   .btn{padding:8px 12px;font-size:12px}
   .btn-sm{padding:5px 10px;font-size:11px}
 
@@ -363,7 +363,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 <body>
 
 <!-- ══ AUTH SCREEN ══ -->
-<div id="authScreen">
+<div id="authScreen" style="display:none">
   <canvas id="plexusCanvas"></canvas>
   <div class="auth-card">
     <div class="auth-logo">
@@ -834,7 +834,7 @@ window.doLogout=async function(){
   await sb.auth.signOut()
   currentUser=null; currentProfile=null
   document.getElementById('appScreen').classList.remove('visible')
-  document.getElementById('authScreen').classList.remove('hidden')
+  document.getElementById('authScreen').style.display='flex'
   switchTab('login')
 }
 
@@ -903,6 +903,7 @@ async function loadProfileAndEnter(user){
   console.log('Role:', currentProfile.role)
 
   if(currentProfile.role==='pending'){
+    document.getElementById('authScreen').style.display='flex'
     document.getElementById('loginForm').classList.add('hidden')
     document.getElementById('registerForm').classList.add('hidden')
     document.getElementById('pendingForm').classList.remove('hidden')
@@ -916,7 +917,7 @@ async function loadProfileAndEnter(user){
 }
 
 function enterApp(){
-  document.getElementById('authScreen').classList.add('hidden')
+  document.getElementById('authScreen').style.display='none'
   document.getElementById('appScreen').classList.add('visible')
 
   // Set up user chip
@@ -1403,10 +1404,13 @@ sb.auth.onAuthStateChange(async(event,session)=>{
   if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session?.user){
     if(document.getElementById('appScreen').classList.contains('visible')) return
     await loadProfileAndEnter(session.user)
+  }else if(event==='INITIAL_SESSION'&&!session){
+    // No session — show login screen
+    document.getElementById('authScreen').style.display='flex'
   }else if(event==='SIGNED_OUT'){
     currentUser=null; currentProfile=null
     document.getElementById('appScreen').classList.remove('visible')
-    document.getElementById('authScreen').classList.remove('hidden')
+    document.getElementById('authScreen').style.display='flex'
   }
 })
 // onAuthStateChange fires INITIAL_SESSION on load if a session exists,
