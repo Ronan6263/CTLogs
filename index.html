@@ -841,25 +841,36 @@ window.doLogout=async function(){
 
 async function loadProfileAndEnter(user){
   currentUser=user
-  // Fetch profile
-  const {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single()
+
+  // Retry up to 4 times with a short delay — session propagation can lag slightly
+  let profile=null
+  for(let attempt=0; attempt<4; attempt++){
+    if(attempt>0) await new Promise(r=>setTimeout(r,600))
+    const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle()
+    if(data){ profile=data; break }
+    // If error is not a "no rows" error, log it but keep retrying
+    if(error && error.code!=='PGRST116') console.warn('Profile fetch attempt',attempt+1,error.message)
+  }
+
   if(!profile){
-    // Create pending profile if doesn't exist
-    await sb.from('profiles').upsert({id:user.id, email:user.email, role:'pending'})
+    // Profile still doesn't exist after retries — create it
+    const {error:upsertErr}=await sb.from('profiles').upsert({id:user.id, email:user.email, role:'pending'})
+    if(upsertErr) console.warn('Profile upsert error:',upsertErr.message)
     currentProfile={id:user.id,email:user.email,role:'pending'}
   } else {
     currentProfile=profile
   }
 
   if(currentProfile.role==='pending'){
-    // Show pending state
     document.getElementById('loginForm').classList.add('hidden')
     document.getElementById('registerForm').classList.add('hidden')
     document.getElementById('pendingForm').classList.remove('hidden')
+    // Re-enable login button if it was disabled
+    const btn=document.getElementById('loginBtn')
+    if(btn) { btn.disabled=false; btn.textContent='Sign In' }
     return
   }
 
-  // Enter the app
   enterApp()
 }
 
