@@ -74,6 +74,11 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .role-crew{background:var(--teal-glow);border:1px solid var(--teal-dim);color:var(--teal)}
 .role-guest{background:var(--panel2);border:1px solid var(--border);color:var(--text-dim)}
 .role-pending{background:var(--red-glow);border:1px solid var(--red);color:var(--red)}
+/* Standalone role badge in topbar for mobile */
+#topbarRoleBadge{display:none}
+@media(max-width:600px){
+  #topbarRoleBadge{display:inline-flex}
+}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--radius);border:none;cursor:pointer;font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.17s;white-space:nowrap;outline:none}
@@ -271,13 +276,87 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 .toast-err{border-color:var(--red)}
 
 @media(max-width:600px){
+  /* LAYOUT */
   .frow{flex-direction:column}
-  .cards-grid{grid-template-columns:1fr}
-  .topbar{padding:0 16px}
-  .shell{padding:20px 14px 80px}
-  .det-title{font-size:22px}
+  .shell{padding:16px 12px 100px}
+  .det-title{font-size:20px}
   .template-bar{flex-direction:column;align-items:stretch}
   .auth-card{padding:28px 20px}
+
+  /* TOPBAR — condense on mobile */
+  .topbar{padding:0 14px;height:56px}
+  .logo-sub{display:none}
+  .logo-text{font-size:15px}
+  .logo-hex{width:30px;height:30px;font-size:13px}
+  .user-chip{display:none} /* hide email chip, too wide */
+  .topbar-right{gap:7px}
+  .btn{padding:8px 12px;font-size:12px}
+  .btn-sm{padding:5px 10px;font-size:11px}
+
+  /* CARDS — full width single column */
+  .cards-grid{grid-template-columns:1fr;gap:12px}
+  .card-desc{-webkit-line-clamp:1}
+
+  /* STATE HEADERS */
+  .state-label{font-size:10px;padding:3px 10px}
+  .state-group{margin-bottom:24px}
+
+  /* SEARCH ROW */
+  .search-row{flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .search-wrap{width:100%;flex:none}
+  #collapseAllBtn{font-size:11px;padding:7px 12px}
+
+  /* STATS — scroll horizontally */
+  .stats-row{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin-bottom:16px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .stats-row::-webkit-scrollbar{display:none}
+  .stat-chip{flex-shrink:0;padding:6px 12px;font-size:12px}
+  .stat-chip strong{font-size:13px}
+
+  /* MODALS — full screen on mobile */
+  .overlay{padding:0}
+  .overlay.open{align-items:flex-end}
+  .modal{max-width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto}
+  .modal-wide{max-width:100%}
+  .vdetail-overlay{padding:0}
+  .vdetail-overlay.open{align-items:flex-end}
+  .vdetail-modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto}
+  .admin-overlay{padding:0}
+  .admin-overlay.open{align-items:flex-end}
+  .admin-modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto}
+
+  /* DETAIL VIEW */
+  .det-hero{padding:18px 16px 0}
+  .det-section{padding:0 16px}
+  .det-foot{padding:12px 16px;flex-wrap:wrap;gap:8px}
+  .det-images{gap:8px}
+  .det-img-wrap img{width:100px;height:78px}
+
+  /* VISIT ROWS */
+  .vitem{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .vitem-left{min-width:0;flex:1}
+  .vdate{font-size:12px}
+  .vitem-right{gap:5px}
+
+  /* VISIT DETAIL */
+  .vdetail-body{padding:18px 16px}
+  .vdetail-foot{padding:12px 16px}
+  .vconfirm-bar{margin:0 16px 14px}
+
+  /* CARD THUMBS */
+  .card-thumbs{padding:0 14px 12px}
+  .card-thumb{width:56px;height:46px}
+
+  /* MODAL BODY PADDING */
+  .modal-body{padding:18px 16px}
+  .modal-foot{padding:12px 16px}
+  .modal-head{padding:18px 16px 14px}
+
+  /* CONFIRM BAR */
+  .confirm-bar{padding:10px 12px}
+  #delLocBar{margin:0 16px 14px}
+
+  /* TOAST — full width at bottom */
+  .toast{left:12px;right:12px;bottom:16px;max-width:none}
 }
 </style>
 </head>
@@ -359,6 +438,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <span id="userEmailChip" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
         <span class="role-badge" id="userRoleBadge"></span>
       </div>
+      <span class="role-badge" id="topbarRoleBadge"></span>
       <button class="btn btn-ghost btn-sm" id="adminPanelBtn" onclick="openAdminPanel()" style="display:none">Admin</button>
       <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button>
       <button class="btn btn-primary" id="newLocBtn" onclick="openNewLocation()">
@@ -704,19 +784,24 @@ window.doLogin=async function(){
   if(!email||!pass){showMsg(msg,'Please fill in all fields.','err');return}
   btn.disabled=true; btn.textContent='Signing in…'
 
-  // Set session persistence based on stay logged in checkbox
-  await sb.auth.setSession && null // handled by persistSession:true
-  if(!stay){
-    // Override to session-only by signing out after tab close is handled by Supabase
-    // We store preference
-    sessionStorage.setItem('ctlogs_nosave','1')
-  } else {
-    sessionStorage.removeItem('ctlogs_nosave')
-  }
-
   const {data,error}=await sb.auth.signInWithPassword({email,password:pass})
   if(error){ showMsg(msg,error.message,'err'); btn.disabled=false; btn.textContent='Sign In'; return }
-  // check profile
+
+  // Handle stay logged in — if unchecked, store a flag so we sign out on next fresh load
+  if(!stay){
+    sessionStorage.setItem('ctlogs_session_only','1')
+    // Store the access token in sessionStorage only so it's gone when tab closes
+    sessionStorage.setItem('ctlogs_temp_session', JSON.stringify({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    }))
+    // Remove from localStorage so it doesn't persist
+    localStorage.removeItem('ctlogs_auth')
+  } else {
+    sessionStorage.removeItem('ctlogs_session_only')
+    sessionStorage.removeItem('ctlogs_temp_session')
+  }
+
   await loadProfileAndEnter(data.user)
   btn.disabled=false; btn.textContent='Sign In'
 }
@@ -787,6 +872,10 @@ function enterApp(){
   const badge=document.getElementById('userRoleBadge')
   badge.textContent=currentProfile.role
   badge.className='role-badge role-'+currentProfile.role
+  // Mobile standalone badge
+  const mbadge=document.getElementById('topbarRoleBadge')
+  mbadge.textContent=currentProfile.role
+  mbadge.className='role-badge role-'+currentProfile.role
 
   // Show/hide admin button
   document.getElementById('adminPanelBtn').style.display=currentProfile.role==='admin'?'':'none'
@@ -1259,7 +1348,6 @@ document.getElementById('searchInput').addEventListener('input',()=>renderCards(
 // ── AUTH STATE LISTENER + INIT ────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_IN'&&session?.user){
-    // Don't re-enter if already in app
     if(document.getElementById('appScreen').classList.contains('visible')) return
     await loadProfileAndEnter(session.user)
   }else if(event==='SIGNED_OUT'){
@@ -1270,6 +1358,11 @@ sb.auth.onAuthStateChange(async(event,session)=>{
 
 // Check existing session on load
 ;(async()=>{
+  // If user chose not to stay logged in last time, sign them out on fresh load
+  if(sessionStorage.getItem('ctlogs_session_only')==='1' && !sessionStorage.getItem('ctlogs_temp_session')){
+    await sb.auth.signOut()
+    return
+  }
   const {data:{session}}=await sb.auth.getSession()
   if(session?.user){
     await loadProfileAndEnter(session.user)
