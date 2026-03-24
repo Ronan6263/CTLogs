@@ -230,7 +230,39 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .offline-banner strong{font-family:var(--mono);letter-spacing:0.05em}
 .offline-queue{font-size:12px;color:var(--amber-dim)}
 
-/* ── DATE TYPE TOGGLE ── */
+/* ── DISPATCH ── */
+.dispatch-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);overflow-y:auto;padding:36px 18px}
+.dispatch-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.stop-card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;position:relative}
+.stop-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stop-num{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:0.12em;text-transform:uppercase;background:var(--amber-glow);border:1px solid var(--amber-dim);border-radius:3px;padding:2px 9px}
+.stop-known{background:var(--teal-glow);border:1px solid var(--teal-dim);border-radius:var(--radius);padding:10px 12px;margin-top:10px;font-size:13px;color:var(--teal)}
+.stop-known-name{font-family:var(--cond);font-size:15px;font-weight:700;color:#eef1f8;margin-bottom:2px}
+.crew-check-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.crew-check{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color 0.15s}
+.crew-check:has(input:checked){border-color:var(--teal-dim);background:var(--teal-glow)}
+.crew-check input{accent-color:var(--teal);width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.crew-check-email{font-size:13px;color:var(--text)}
+.dispatch-preview{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:13px;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;font-family:var(--mono);font-size:12px;max-height:260px;overflow-y:auto;margin-top:12px}
+@media(max-width:600px){.dispatch-overlay{padding:0}.dispatch-overlay.open{align-items:flex-end}.dispatch-overlay .modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto}}
+.contacts-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.contact-row{display:flex;gap:8px;align-items:flex-start;background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.contact-row .contact-fields{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+.contact-row .contact-fields input{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-family:var(--body);font-size:13px;outline:none;transition:border-color 0.15s}
+.contact-row .contact-fields input:focus{border-color:var(--amber-dim)}
+.contact-row .contact-fields input::placeholder{color:var(--text-faint)}
+.contact-rm{background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:18px;line-height:1;padding:2px 4px;flex-shrink:0;transition:color 0.15s;margin-top:1px}
+.contact-rm:hover{color:var(--red)}
+.btn-add-contact{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:none;border:1px dashed var(--border);border-radius:var(--radius);padding:7px 14px;color:var(--text-dim);font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
+.btn-add-contact:hover{border-color:var(--teal-dim);color:var(--teal);background:var(--teal-glow)}
+
+/* ── CONTACTS DISPLAY ── */
+.contact-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.contact-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.contact-card-name{font-size:14px;color:var(--text);font-weight:500}
+.contact-card-role{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:1px}
+.contact-card-phone{font-family:var(--mono);font-size:13px;color:var(--teal)}
+.contact-card-email{font-size:12px;color:var(--text-dim);margin-top:2px}
 .date-type-row{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;width:fit-content}
 .date-type-btn{padding:7px 16px;border:none;background:transparent;color:var(--text-dim);font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
 .date-type-btn.active{background:var(--teal);color:#0c0d10}
@@ -512,6 +544,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       </div>
       <span class="role-badge" id="topbarRoleBadge"></span>
       <button class="btn btn-ghost btn-sm" id="adminPanelBtn" onclick="openAdminPanel()" style="display:none">Admin</button>
+      <button class="btn btn-ghost btn-sm" id="dispatchBtn" onclick="openDispatch()" style="display:none">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        Dispatch
+      </button>
       <button class="btn btn-ghost btn-sm" onclick="refreshData()" title="Refresh">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         <span class="hide-mobile">Refresh</span>
@@ -573,6 +609,16 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <div class="fg">
         <label>Description / Notes</label>
         <textarea id="lDesc" placeholder="Water source type, access instructions, power board location…"></textarea>
+      </div>
+
+      <!-- CONTACTS -->
+      <div class="fg">
+        <label>Site Contacts</label>
+        <div class="contacts-list" id="lContactsList"></div>
+        <button type="button" class="btn-add-contact" onclick="addContactRow()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Add Contact
+        </button>
       </div>
       <div class="fg">
         <label>Tags <span style="text-transform:none;font-weight:400;letter-spacing:0;font-family:var(--body)">(comma separated)</span></label>
@@ -674,6 +720,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <div class="det-title" id="dTitle"></div>
       <div class="det-addr"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="dAddr"></span></div>
       <div class="det-desc" id="dDesc"></div>
+      <div class="sec-title" id="dContactsTitle">Contacts</div>
+      <div class="contact-cards" id="dContacts"></div>
       <div class="sec-title">Equipment Needed</div>
       <div class="equip-display" id="dEquip"></div>
       <div class="sec-title">Site Images</div>
@@ -693,6 +741,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     <div class="det-foot">
       <button class="btn btn-danger btn-sm" id="deleteLocBtn" onclick="confirmDeleteLoc()">Delete Location</button>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="exportLocationPDF()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          PDF
+        </button>
         <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
         <button class="btn btn-ghost btn-sm" id="editLocBtn" onclick="editCurLoc()">✏ Edit</button>
       </div>
@@ -787,6 +839,53 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeAdminPanel()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPATCH MODAL -->
+<div class="dispatch-overlay" id="dispatchOverlay">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <div class="modal-title"><span class="mta">◈</span> Dispatch Job</div>
+      <button class="mclose" onclick="closeDispatch()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- CREW -->
+      <div class="fg">
+        <label>Crew <span style="text-transform:none;font-weight:400;letter-spacing:0;font-family:var(--body)">(select recipients)</span></label>
+        <div class="crew-check-list" id="crewCheckList"></div>
+      </div>
+
+      <!-- CUSTOM MESSAGE -->
+      <div class="fg">
+        <label>Message / Instructions</label>
+        <textarea id="dispatchMsg" placeholder="e.g. Clean the towers at both locations. Contact Jason on site." style="min-height:80px"></textarea>
+      </div>
+
+      <!-- STOPS -->
+      <div class="fg">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <label style="margin:0">Job Stops</label>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addStop()">+ Add Stop</button>
+        </div>
+        <div id="stopsList"></div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="fg">
+        <label>Email Preview</label>
+        <div class="dispatch-preview" id="dispatchPreview">Fill in the details above to preview the email…</div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDispatch()">Cancel</button>
+      <button class="btn btn-primary" onclick="sendDispatch()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        Open in Gmail
+      </button>
     </div>
   </div>
 </div>
@@ -1079,6 +1178,7 @@ function enterApp(){
 
   // Show/hide admin button
   document.getElementById('adminPanelBtn').style.display=currentProfile.role==='admin'?'':'none'
+  document.getElementById('dispatchBtn').style.display=currentProfile.role==='admin'?'':'none'
 
   // Apply permissions to UI
   applyPermissions()
@@ -1256,6 +1356,65 @@ window.gpsAutofill=async function(){
 }
 const stateAbbreviations={'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY','New South Wales':'NSW','Victoria':'VIC','Queensland':'QLD','South Australia':'SA','Western Australia':'WA','Tasmania':'TAS','Northern Territory':'NT','Australian Capital Territory':'ACT'}
 
+// ── CONTACTS ─────────────────────────────────────────────────────────────────
+let locContacts = [] // [{name, phone, email, role}]
+
+window.addContactRow=function(c={}){
+  locContacts.push({name:c.name||'',phone:c.phone||'',email:c.email||'',role:c.role||''})
+  renderContactRows()
+  markDirty()
+}
+
+function renderContactRows(){
+  const list=document.getElementById('lContactsList')
+  list.innerHTML=locContacts.map((c,i)=>`
+    <div class="contact-row">
+      <div class="contact-fields">
+        <input type="text" placeholder="Name *" value="${esc(c.name)}" oninput="updateContact(${i},'name',this.value)" style="min-width:140px" />
+        <input type="text" placeholder="Phone" value="${esc(c.phone)}" oninput="updateContact(${i},'phone',this.value)" style="min-width:120px" />
+        <input type="text" placeholder="Email" value="${esc(c.email)}" oninput="updateContact(${i},'email',this.value)" style="min-width:160px" />
+        <input type="text" placeholder="Role (e.g. Building Mgr)" value="${esc(c.role)}" oninput="updateContact(${i},'role',this.value)" style="min-width:140px" />
+      </div>
+      <button class="contact-rm" onclick="removeContact(${i})" title="Remove">✕</button>
+    </div>`).join('')
+}
+
+window.updateContact=function(i,field,val){
+  if(locContacts[i]) locContacts[i][field]=val
+  markDirty()
+}
+window.removeContact=function(i){
+  locContacts.splice(i,1); renderContactRows(); markDirty()
+}
+
+function resetContacts(){ locContacts=[]; renderContactRows() }
+
+function setContactsData(contacts){
+  locContacts=(contacts||[]).map(c=>({...c}))
+  renderContactRows()
+}
+
+function renderContactsDisplay(contacts){
+  const el=document.getElementById('dContacts')
+  const titleEl=document.getElementById('dContactsTitle')
+  if(!contacts||!contacts.length){
+    titleEl.style.display='none'
+    el.innerHTML=''; return
+  }
+  titleEl.style.display=''
+  el.innerHTML=contacts.map(c=>`
+    <div class="contact-card">
+      <div>
+        <div class="contact-card-name">${esc(c.name||'—')}</div>
+        ${c.role?`<div class="contact-card-role">${esc(c.role)}</div>`:''}
+      </div>
+      <div style="text-align:right">
+        ${c.phone?`<div class="contact-card-phone"><a href="tel:${esc(c.phone)}" style="color:inherit;text-decoration:none">${esc(c.phone)}</a></div>`:''}
+        ${c.email?`<div class="contact-card-email"><a href="mailto:${esc(c.email)}" style="color:inherit;text-decoration:none">${esc(c.email)}</a></div>`:''}
+      </div>
+    </div>`).join('')
+}
+
 // ── EQUIPMENT ─────────────────────────────────────────────────────────────────
 const equipCounters={gasWashers:0,gardenHose:0,pressureHose:0,contractorBags:0}
 const equipToggles=['vacuum','electricWasher','squeegee','orangePump']
@@ -1355,7 +1514,7 @@ window.toggleFirstVisit=function(fromCheckbox){
 // ── LOCATION MODAL ────────────────────────────────────────────────────────────
 window.openNewLocation=function(){
   if(currentProfile?.role==='guest') return
-  editLocId=null; locImgs=[]; fvImgs=[]; markClean(); resetEquip()
+  editLocId=null; locImgs=[]; fvImgs=[]; markClean(); resetEquip(); resetContacts()
   document.getElementById('lTitle').value=''
   document.getElementById('lSiteId').value=''
   document.getElementById('lAddress').value=''
@@ -1395,6 +1554,7 @@ window.editCurLoc=function(){
   document.getElementById('lDesc').value=loc.description||''
   document.getElementById('lTags').value=(loc.tags||[]).join(', ')
   setEquipData(loc.equipment||{})
+  setContactsData(loc.contacts||[])
   renderPrev('loc','lImgPreview')
   document.getElementById('firstVisitToggleWrap').style.display='none'
   document.getElementById('templateBar').style.display='none'
@@ -1416,7 +1576,7 @@ window.saveLoc=async function(){
     const fvNotes=document.getElementById('fvNotes').value.trim()
     if(fvNotes) visits=[{id:crypto.randomUUID(),date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:[...fvImgs]}]
   }
-  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,equipment:getEquipData(),updated_at:new Date().toISOString()}
+  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,equipment:getEquipData(),contacts:locContacts.filter(c=>c.name||c.phone),updated_at:new Date().toISOString()}
   if(editLocId) payload.id=editLocId
   else payload.visits=visits
   try{
@@ -1448,6 +1608,9 @@ function renderDetail(){
   document.getElementById('dTitle').textContent=loc.title||loc.address||'Untitled'
   document.getElementById('dAddr').textContent=loc.address||'—'
   document.getElementById('dDesc').textContent=loc.description||'No description provided.'
+
+  // Contacts
+  renderContactsDisplay(loc.contacts||[])
 
   // Equipment
   const equipEl=document.getElementById('dEquip')
@@ -1741,11 +1904,278 @@ function renderCards(){
   `
 }
 
+// ── PDF EXPORT ────────────────────────────────────────────────────────────────
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+window.exportLocationPDF=function(){
+  const loc=locations.find(l=>l.id===curLocId); if(!loc) return
+  const equipLabels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
+  const equip=loc.equipment?Object.entries(loc.equipment).map(([k,v])=>{const label=equipLabels[k]||k;return typeof v==='number'?`${label}: ${v}${k.includes('Hose')?'ft':''}`:label}).join(' · '):''
+  const visits=[...(loc.visits||[])].sort((a,b)=>a.date>b.date?-1:1)
+  const pf=iso=>{if(!iso)return'—';const[y,m,d]=iso.split('-');return`${parseInt(d)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}`}
+  const fmtVisitDate=(v)=>v.date_end&&v.date_end!==v.date?`${pf(v.date)} – ${pf(v.date_end)}`:pf(v.date)
+
+  const contactsHtml=(loc.contacts||[]).map(c=>`
+    <div class="pdf-contact">
+      <strong>${escHtml(c.name||'—')}</strong>${c.role?` <span class="pdf-role">${escHtml(c.role)}</span>`:''}
+      ${c.phone?`<span class="pdf-phone">${escHtml(c.phone)}</span>`:''}
+      ${c.email?`<span class="pdf-email">${escHtml(c.email)}</span>`:''}
+    </div>`).join('')
+
+  const imagesHtml=(loc.images||[]).map(img=>`
+    <div class="pdf-img-wrap">
+      <img src="${img.dataUrl}" alt="${escHtml(img.caption||img.name)}" />
+      ${(img.caption||img.name)?`<div class="pdf-img-cap">${escHtml(img.caption||img.name)}</div>`:''}
+    </div>`).join('')
+
+  const visitsHtml=visits.map(v=>`
+    <div class="pdf-visit">
+      <div class="pdf-visit-head">
+        <span class="pdf-visit-date">${fmtVisitDate(v)}</span>
+        <span class="pdf-visit-crew">${escHtml(v.tech||'—')}</span>
+      </div>
+      <div class="pdf-visit-notes">${escHtml(v.notes||'').replace(/\n/g,'<br>')}</div>
+      ${(v.images||[]).length?`<div class="pdf-visit-imgs">${v.images.map(i=>`<div class="pdf-img-wrap" style="width:100px"><img src="${i.dataUrl}" style="width:100px;height:76px;object-fit:cover" />${(i.caption||i.name)?`<div class="pdf-img-cap">${escHtml(i.caption||i.name)}</div>`:''}</div>`).join('')}</div>`:''}
+    </div>`).join('')
+
+  const equipChips=equip?equip.split(' · ').map(e=>`<span class="pdf-equip-chip">${e}</span>`).join(''):''
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<title>CT Logs — ${escHtml(loc.title||loc.address||'Field Card')}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:32px}
+.pdf-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #e8a020;padding-bottom:16px;margin-bottom:24px}
+.pdf-title{font-size:22px;font-weight:800;color:#0c0d10;margin-bottom:4px}
+.pdf-addr{font-size:13px;color:#555}
+.pdf-section{margin-bottom:22px}
+.pdf-section-title{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#999;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+.pdf-desc{font-size:13px;color:#333;line-height:1.7;padding:12px;background:#fafafa;border-left:3px solid #e8a020;border-radius:3px;white-space:pre-wrap}
+.pdf-contact{padding:8px 12px;background:#f5f5f5;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.pdf-contact strong{font-size:13px;color:#111}
+.pdf-role{font-size:11px;color:#888;background:#e8e8e8;padding:1px 7px;border-radius:10px}
+.pdf-phone{font-size:12px;color:#2ec4b6;font-family:monospace}
+.pdf-email{font-size:12px;color:#999;font-family:monospace}
+.pdf-equip{display:flex;flex-wrap:wrap;gap:6px}
+.pdf-equip-chip{font-size:11px;padding:3px 10px;border-radius:12px;background:#fff8e0;border:1px solid #e8a020;color:#7a5000;font-family:monospace}
+.pdf-images{display:flex;flex-wrap:wrap;gap:10px}
+.pdf-img-wrap{text-align:center}
+.pdf-img-wrap img{width:160px;height:120px;object-fit:cover;border-radius:4px;border:1px solid #ddd;display:block}
+.pdf-img-cap{font-size:10px;color:#999;margin-top:3px}
+.pdf-visit{padding:12px;background:#fafafa;border-radius:4px;margin-bottom:8px;border-left:3px solid #2ec4b6}
+.pdf-visit-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pdf-visit-date{font-family:monospace;font-size:12px;color:#2ec4b6;font-weight:700}
+.pdf-visit-crew{font-size:12px;color:#999}
+.pdf-visit-notes{font-size:13px;color:#333;line-height:1.65;white-space:pre-wrap}
+.pdf-visit-imgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pdf-footer{margin-top:32px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#bbb;display:flex;justify-content:space-between}
+@media print{body{padding:16px}@page{margin:1.5cm}}
+</style></head><body>
+<div class="pdf-header">
+  <div>
+    <div class="pdf-title">${escHtml(loc.title||loc.address||'Untitled')}</div>
+    ${loc.site_id?`<div style="font-size:11px;color:#aaa;font-family:monospace;margin-bottom:4px"># ${escHtml(loc.site_id)}</div>`:''}
+    <div class="pdf-addr">${escHtml(loc.address||'—')}</div>
+  </div>
+  <div style="text-align:right;font-size:11px;color:#aaa">
+    <div style="font-weight:800;color:#e8a020;font-size:15px;margin-bottom:2px">CT LOGS</div>
+    <div>Field Card</div>
+    <div>${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
+    ${visits.length?`<div style="margin-top:4px">${visits.length} visit${visits.length!==1?'s':''} on record</div>`:''}
+  </div>
+</div>
+${loc.description?`<div class="pdf-section"><div class="pdf-section-title">Notes &amp; Access Info</div><div class="pdf-desc">${escHtml(loc.description)}</div></div>`:''}
+${contactsHtml?`<div class="pdf-section"><div class="pdf-section-title">Site Contacts</div>${contactsHtml}</div>`:''}
+${equipChips?`<div class="pdf-section"><div class="pdf-section-title">Equipment Needed</div><div class="pdf-equip">${equipChips}</div></div>`:''}
+${imagesHtml?`<div class="pdf-section"><div class="pdf-section-title">Site Photos</div><div class="pdf-images">${imagesHtml}</div></div>`:''}
+${visitsHtml?`<div class="pdf-section"><div class="pdf-section-title">Visit History</div>${visitsHtml}</div>`:''}
+<div class="pdf-footer"><span>CT Logs — Field Service Database</span><span>${escHtml(loc.title||loc.address||'')}</span></div>
+</body></html>`
+
+  const win=window.open('','_blank')
+  win.document.write(html)
+  win.document.close()
+  setTimeout(()=>win.print(),700)
+}
+
+// ── DISPATCH ─────────────────────────────────────────────────────────────────
+// Hardcoded crew for now — swap for dynamic user list when ready for rollout
+const CREW_LIST = [
+  { name: 'Cody Nolan',  email: 'cody.nolan006@gmail.com' },
+  { name: 'Sal',         email: '' }, // add Sal's work email here
+]
+
+let dispatchStops = []
+
+window.openDispatch=async function(){
+  dispatchStops=[]
+  document.getElementById('dispatchMsg').value=''
+  document.getElementById('dispatchPreview').textContent='Fill in the details above to preview the email…'
+
+  // Build crew checkboxes
+  const list=document.getElementById('crewCheckList')
+  list.innerHTML=CREW_LIST.map((c,i)=>`
+    <label class="crew-check">
+      <input type="checkbox" value="${i}" onchange="updateDispatchPreview()" />
+      <span class="crew-check-email">${esc(c.name)}${c.email?' — '+esc(c.email):' (no email set)'}</span>
+    </label>`).join('')
+
+  addStop()
+  document.getElementById('dispatchOverlay').classList.add('open')
+  document.getElementById('dispatchMsg').addEventListener('input', updateDispatchPreview)
+}
+window.closeDispatch=function(){ document.getElementById('dispatchOverlay').classList.remove('open') }
+
+window.addStop=function(){
+  const idx=dispatchStops.length
+  dispatchStops.push({locId:null, customAddress:'', contactName:'', contactPhone:''})
+  renderStops()
+}
+
+window.removeStop=function(idx){
+  dispatchStops.splice(idx,1); renderStops(); updateDispatchPreview()
+}
+
+window.updateStopField=function(idx,field,val){
+  if(dispatchStops[idx]) dispatchStops[idx][field]=val
+  updateDispatchPreview()
+}
+
+window.selectStopLocation=function(idx,locId){
+  const loc=locations.find(l=>l.id===locId)
+  dispatchStops[idx].locId=locId||null
+  dispatchStops[idx].customAddress=''
+  renderStops()
+  updateDispatchPreview()
+}
+
+function renderStops(){
+  const container=document.getElementById('stopsList')
+  const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th']
+  container.innerHTML=dispatchStops.map((stop,idx)=>{
+    const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
+    return `<div class="stop-card">
+      <div class="stop-card-head">
+        <span class="stop-num">${ordinals[idx]||idx+1+'. '} Stop</span>
+        ${dispatchStops.length>1?`<button type="button" class="btn btn-danger btn-sm" onclick="removeStop(${idx})">Remove</button>`:''}
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Known Location (optional)</label>
+        <select onchange="selectStopLocation(${idx},this.value)" style="margin:0">
+          <option value="">— New / unknown address —</option>
+          ${locations.map(l=>`<option value="${l.id}" ${stop.locId===l.id?'selected':''}>${esc(l.title||l.address||'Untitled')}</option>`).join('')}
+        </select>
+      </div>
+      ${loc?`<div class="stop-known">
+        <div class="stop-known-name">${esc(loc.title||loc.address)}</div>
+        <div style="font-size:12px;color:var(--text-dim)">${esc(loc.address||'')}</div>
+        ${(loc.contacts||[]).length?`<div style="font-size:12px;margin-top:4px">${loc.contacts.map(c=>`${esc(c.name)}${c.phone?' · '+esc(c.phone):''}`).join(' | ')}</div>`:''}
+      </div>`:`<div class="frow" style="margin-top:8px">
+        <div class="fg"><label>Address</label><input type="text" placeholder="123 Main St, Boston MA" value="${esc(stop.customAddress)}" oninput="updateStopField(${idx},'customAddress',this.value)" /></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Contact Name</label><input type="text" placeholder="Jason Moore" value="${esc(stop.contactName)}" oninput="updateStopField(${idx},'contactName',this.value)" /></div>
+        <div class="fg"><label>Contact Phone</label><input type="text" placeholder="(603) 555-0100" value="${esc(stop.contactPhone)}" oninput="updateStopField(${idx},'contactPhone',this.value)" /></div>
+      </div>`}
+    </div>`
+  }).join('')
+  updateDispatchPreview()
+}
+
+function updateDispatchPreview(){
+  const msg=document.getElementById('dispatchMsg').value.trim()
+  const ordinals=['1st','2nd','3rd','4th','5th','6th']
+  let body=''
+
+  dispatchStops.forEach((stop,idx)=>{
+    const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
+    const addr=loc?loc.address:stop.customAddress
+    const contacts=loc?(loc.contacts||[]):[]
+    const isNew=!stop.locId
+
+    body+=`${ordinals[idx]||idx+1+'. '} Stop\n`
+    if(addr) body+=`${addr}\n`
+    if(contacts.length){
+      contacts.forEach(c=>{
+        body+=`${c.name}${c.role?' ('+c.role+')':''}${c.phone?' — '+c.phone:''}${c.email?' — '+c.email:''}\n`
+      })
+    } else if(stop.contactName){
+      body+=`${stop.contactName}${stop.contactPhone?' — '+stop.contactPhone:''}\n`
+    }
+    if(isNew) body+=`⚠ No field card on file — please complete a site report on arrival\n`
+    body+='\n'
+  })
+
+  if(msg) body+=msg+'\n\n'
+  body+='— Dispatched via CT Logs'
+
+  document.getElementById('dispatchPreview').textContent=body||'Fill in the details above to preview the email…'
+}
+
+window.sendDispatch=function(){
+  const msg=document.getElementById('dispatchMsg').value.trim()
+  const ordinals=['1st','2nd','3rd','4th','5th','6th']
+
+  // Get selected crew emails
+  const checked=[...document.querySelectorAll('#crewCheckList input:checked')]
+  const recipients=checked.map(cb=>CREW_LIST[parseInt(cb.value)]?.email).filter(Boolean)
+
+  if(!recipients.length){ toast('Select at least one crew member with an email.','err'); return }
+  if(!dispatchStops.some(s=>s.locId||s.customAddress)){ toast('Add at least one stop with an address.','err'); return }
+
+  // Build subject
+  const firstAddr=dispatchStops[0]?.locId
+    ? locations.find(l=>l.id===dispatchStops[0].locId)?.address
+    : dispatchStops[0]?.customAddress
+  const subject=`Job Dispatch — ${firstAddr||'New Job'}${dispatchStops.length>1?' + '+(dispatchStops.length-1)+' more':''}`
+
+  // Build body
+  let body=''
+  dispatchStops.forEach((stop,idx)=>{
+    const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
+    const addr=loc?loc.address:stop.customAddress
+    const contacts=loc?(loc.contacts||[]):[]
+
+    body+=`${ordinals[idx]||idx+1+'. '} Stop\n`
+    if(addr) body+=`${addr}\n`
+    if(contacts.length){
+      contacts.forEach(c=>{
+        body+=`${c.name}${c.role?' ('+c.role+')':''}${c.phone?' — '+c.phone:''}${c.email?' — '+c.email:''}\n`
+      })
+    } else if(stop.contactName){
+      body+=`${stop.contactName}${stop.contactPhone?' — '+stop.contactPhone:''}\n`
+    }
+    if(!stop.locId) body+=`No field card on file — please complete a site report on arrival.\n`
+
+    // Equipment
+    if(loc?.equipment && Object.keys(loc.equipment).length){
+      const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
+      const equip=Object.entries(loc.equipment).map(([k,v])=>{
+        const label=labels[k]||k
+        return typeof v==='number'?`${label}: ${v}${k.includes('Hose')?'ft':''}`:label
+      }).join(', ')
+      body+=`Equipment: ${equip}\n`
+    }
+
+    // Notes
+    if(loc?.description) body+=`Notes: ${loc.description}\n`
+    body+='\n'
+  })
+
+  if(msg) body+=msg+'\n\n'
+  body+='— Dispatched via CT Logs'
+
+  // Open Gmail compose
+  const gmailUrl=`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(recipients.join(','))}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  window.open(gmailUrl,'_blank')
+  toast('Gmail compose opened.')
+}
+
 // ── KEYBOARD + OVERLAY CLICK ──────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeLB();closeVDetail();closeVisitModal();closeLocModal();closeDetailModal();closeAdminPanel()}
+  if(e.key==='Escape'){closeLB();closeVDetail();closeVisitModal();closeLocModal();closeDetailModal();closeAdminPanel();closeDispatch()}
 })
-;['locOverlay','detOverlay','visitOverlay','vdetailOverlay','adminOverlay'].forEach(id=>{
+;['locOverlay','detOverlay','visitOverlay','vdetailOverlay','adminOverlay','dispatchOverlay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){
     if(e.target===this){
       if(id==='locOverlay'||id==='visitOverlay') guardClose(()=>{ markClean(); this.classList.remove('open') })
