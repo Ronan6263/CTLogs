@@ -91,10 +91,9 @@ body::before{
 /* SEARCH */
 .search-row{display:flex;gap:12px;margin-bottom:24px;align-items:center}
 .search-wrap{flex:1;position:relative}
-.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;z-index:1}
 .search-input{
   width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:11px 14px 11px 42px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;
+  padding:11px 14px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;
   transition:border-color 0.2s,box-shadow 0.2s;
 }
 .search-input::placeholder{color:var(--text-faint)}
@@ -204,7 +203,20 @@ input:focus,textarea:focus,select:focus{border-color:var(--amber-dim);box-shadow
 textarea{min-height:90px}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 
-/* TEMPLATE BAR */
+/* GPS */
+.addr-wrap{position:relative;display:flex;gap:8px;align-items:center}
+.addr-wrap input{flex:1}
+.btn-gps{
+  flex-shrink:0;background:var(--panel2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px 12px;cursor:pointer;
+  color:var(--teal);font-size:16px;line-height:1;
+  transition:border-color 0.17s,background 0.17s;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;
+}
+.btn-gps:hover{border-color:var(--teal-dim);background:var(--teal-glow)}
+.btn-gps:disabled{opacity:0.4;pointer-events:none}
+.btn-gps svg{flex-shrink:0}
 .template-bar{
   background:var(--panel2);border:1px solid var(--border);
   border-radius:var(--radius);padding:14px 16px;
@@ -355,7 +367,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 <main class="shell">
   <div class="search-row">
     <div class="search-wrap">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" />
     </div>
     <button class="btn btn-ghost btn-sm" id="collapseAllBtn" onclick="toggleAllGroups()" style="white-space:nowrap">Collapse All</button>
@@ -394,7 +405,13 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       </div>
       <div class="fg">
         <label>Address *</label>
-        <input type="text" id="lAddress" placeholder="123 Industrial Dr, Concord NH" />
+        <div class="addr-wrap">
+          <input type="text" id="lAddress" placeholder="123 Industrial Dr, Concord NH" />
+          <button class="btn-gps" id="gpsBtn" onclick="gpsAutofill()" title="Use my current location">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>
+            GPS
+          </button>
+        </div>
       </div>
       <div class="fg">
         <label>Description / Notes</label>
@@ -655,6 +672,67 @@ window.applyTemplate=function(){
   document.getElementById('lDesc').value=src.description||''
   document.getElementById('lTags').value=(src.tags||[]).join(', ')
   toast('Template applied — enter the new site details above.')
+}
+
+// GPS AUTOFILL
+window.gpsAutofill=async function(){
+  if(!navigator.geolocation){ toast('Geolocation not supported on this device.','err'); return }
+  const btn=document.getElementById('gpsBtn')
+  btn.disabled=true; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Locating…`
+
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const {latitude:lat, longitude:lng}=pos.coords
+      try{
+        // Use OpenStreetMap Nominatim — free, no API key needed
+        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{
+          headers:{'Accept-Language':'en-US,en','User-Agent':'CTLogs-FieldApp'}
+        })
+        const data=await res.json()
+        const a=data.address||{}
+
+        // Build address string matching "Street, City ST" format
+        const street=[a.house_number, a.road].filter(Boolean).join(' ')
+        const city=a.city||a.town||a.village||a.hamlet||a.county||''
+        const state=a.state_code||a.state||''
+        // Abbreviate state if we got full name
+        const stateAbbr=state.length>2 ? stateAbbreviations[state]||state : state.toUpperCase()
+        const parts=[street,city,stateAbbr].filter(Boolean)
+        const address=parts.join(', ')
+
+        document.getElementById('lAddress').value=address
+        toast('Address filled from GPS.')
+      }catch(e){
+        // Fallback: just fill with coordinates if reverse geocode fails
+        document.getElementById('lAddress').value=`${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        toast('GPS located — reverse geocode failed, coordinates entered.','err')
+      }
+      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
+    },
+    err=>{
+      const msgs={1:'Location permission denied.',2:'Location unavailable.',3:'Location request timed out.'}
+      toast(msgs[err.code]||'GPS error.','err')
+      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
+    },
+    {enableHighAccuracy:true, timeout:10000}
+  )
+}
+
+// US state name → abbreviation lookup
+const stateAbbreviations={
+  'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA',
+  'Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA',
+  'Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA',
+  'Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD',
+  'Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO',
+  'Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ',
+  'New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH',
+  'Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC',
+  'South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT',
+  'Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY',
+  // Australian states for good measure since you're AU-based
+  'New South Wales':'NSW','Victoria':'VIC','Queensland':'QLD','South Australia':'SA',
+  'Western Australia':'WA','Tasmania':'TAS','Northern Territory':'NT','Australian Capital Territory':'ACT'
 }
 
 // LOCATION MODAL
