@@ -216,7 +216,25 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .prev-caption::placeholder{color:var(--text-faint)}
 .prev-caption:focus{border-color:var(--amber-dim)}
 
-/* ── EQUIPMENT ── */
+/* ── OFFLINE BANNER ── */
+.offline-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:800;
+  background:#1a1200;border-top:2px solid var(--amber);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-size:13px;color:var(--amber);
+  transform:translateY(100%);transition:transform 0.3s ease;
+  flex-wrap:wrap;
+}
+.offline-banner.show{transform:translateY(0)}
+.offline-banner strong{font-family:var(--mono);letter-spacing:0.05em}
+.offline-queue{font-size:12px;color:var(--amber-dim)}
+
+/* ── DATE TYPE TOGGLE ── */
+.date-type-row{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;width:fit-content}
+.date-type-btn{padding:7px 16px;border:none;background:transparent;color:var(--text-dim);font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
+.date-type-btn.active{background:var(--teal);color:#0c0d10}
+.date-type-btn:not(.active):hover{background:var(--panel2);color:var(--text)}
 .equip-grid{display:flex;flex-direction:column;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
 .equip-item{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .equip-label{font-size:13px;color:var(--text);flex:1}
@@ -700,8 +718,16 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <button class="mclose" onclick="closeVisitModal()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- Date type toggle -->
+      <div class="fg">
+        <div class="date-type-row">
+          <button type="button" class="date-type-btn active" id="dtSingle" onclick="setDateType('single')">Single Day</button>
+          <button type="button" class="date-type-btn" id="dtRange" onclick="setDateType('range')">Date Range</button>
+        </div>
+      </div>
       <div class="frow">
-        <div class="fg"><label>Date</label><input type="date" id="vDate" /></div>
+        <div class="fg" id="vDateWrap"><label id="vDateLabel">Date</label><input type="date" id="vDate" /></div>
+        <div class="fg" id="vDateEndWrap" style="display:none"><label>End Date</label><input type="date" id="vDateEnd" /></div>
         <div class="fg"><label>Crew</label><input type="text" id="vTech" placeholder="Cody &amp; Sal" /></div>
       </div>
       <div class="fg"><label>Work Performed / Notes</label><textarea id="vNotes" placeholder="Chemical dosing, cleaning, inspection findings…" style="min-height:130px"></textarea></div>
@@ -788,6 +814,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   <img id="lbImg" src="" alt="" onclick="event.stopPropagation()" />
 </div>
 
+<div class="offline-banner" id="offlineBanner">
+  <div>
+    <strong>⚡ OFFLINE MODE</strong>
+    <span style="color:var(--text-dim);margin-left:10px">Changes will sync when connection is restored.</span>
+  </div>
+  <span class="offline-queue" id="offlineQueue"></span>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -869,10 +903,18 @@ initPlexus()
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function today(){ return new Date().toISOString().slice(0,10) }
-function fmtDate(iso){
+function fmtDate(iso, isoEnd){
   if(!iso) return '—'
-  const [y,m,d]=iso.split('-')
-  return `${parseInt(d)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}`
+  const fmt=d=>{ const [y,m,dd]=d.split('-'); return `${parseInt(dd)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}` }
+  if(!isoEnd||isoEnd===iso) return fmt(iso)
+  // Same year — omit year from start if same year
+  const [sy]=iso.split('-'), [ey]=isoEnd.split('-')
+  if(sy===ey){
+    const [,sm,sd]=iso.split('-')
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    return `${parseInt(sd)} ${months[parseInt(sm)-1]} – ${fmt(isoEnd)}`
+  }
+  return `${fmt(iso)} – ${fmt(isoEnd)}`
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 function toast(msg,type='ok'){
@@ -1063,17 +1105,87 @@ function showMsg(el,msg,type){
   el.textContent=msg; el.className=`auth-msg show ${type}`
 }
 
-// ── SUPABASE DB ───────────────────────────────────────────────────────────────
+// ── SERVICE WORKER + OFFLINE ──────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{})
+  navigator.serviceWorker.addEventListener('message', e=>{
+    if(e.data?.type==='ONLINE') flushOfflineQueue()
+  })
+}
+
+let offlineQueue = [] // [{type:'upsert'|'delete', payload}]
+let isOnline = navigator.onLine
+
+function updateOfflineBanner(){
+  const banner=document.getElementById('offlineBanner')
+  if(!isOnline){
+    banner.classList.add('show')
+    const qEl=document.getElementById('offlineQueue')
+    if(offlineQueue.length>0) qEl.textContent=`${offlineQueue.length} change${offlineQueue.length!==1?'s':''} queued`
+    else qEl.textContent=''
+  } else {
+    banner.classList.remove('show')
+  }
+}
+
+window.addEventListener('online', ()=>{
+  isOnline=true
+  updateOfflineBanner()
+  flushOfflineQueue()
+  toast('Back online — syncing changes.')
+})
+window.addEventListener('offline', ()=>{
+  isOnline=false
+  updateOfflineBanner()
+  toast('You\'re offline. Changes will be saved locally.')
+})
+
+async function flushOfflineQueue(){
+  if(!offlineQueue.length) return
+  const queue=[...offlineQueue]
+  offlineQueue=[]
+  updateOfflineBanner()
+  let failed=0
+  for(const item of queue){
+    try{
+      if(item.type==='upsert') await upsertLoc(item.payload)
+      else if(item.type==='delete') await deleteLoc_db(item.payload)
+    }catch(e){
+      offlineQueue.push(item) // re-queue on failure
+      failed++
+    }
+  }
+  if(failed===0){
+    locations=await fetchAll(); renderCards()
+    toast('All changes synced.')
+  } else {
+    toast(`${failed} change${failed!==1?'s':''} failed to sync.`,'err')
+  }
+  updateOfflineBanner()
+}
+
+// ── SUPABASE DB (with offline queue) ─────────────────────────────────────────
 async function fetchAll(){
   const {data,error}=await sb.from('locations').select('*').order('created_at',{ascending:false})
   if(error){toast('DB error: '+error.message,'err');return[]}
   return data||[]
 }
 async function upsertLoc(loc){
+  if(!isOnline){
+    // Apply optimistically to local state
+    offlineQueue.push({type:'upsert',payload:loc})
+    updateOfflineBanner()
+    return // pretend success
+  }
   const {error}=await sb.from('locations').upsert(loc)
   if(error) throw error
 }
 async function deleteLoc_db(id){
+  if(!isOnline){
+    offlineQueue.push({type:'delete',payload:id})
+    updateOfflineBanner()
+    return
+  }
   const {error}=await sb.from('locations').delete().eq('id',id)
   if(error) throw error
 }
@@ -1358,12 +1470,15 @@ function renderDetail(){
     :'<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
 
   const vEl=document.getElementById('visitList')
-  const visits=[...(loc.visits||[])].sort((a,b)=>a.date>b.date?-1:a.date<b.date?1:0)
+  const visits=[...(loc.visits||[])].sort((a,b)=>{
+    const aEnd=a.date_end||a.date, bEnd=b.date_end||b.date
+    return aEnd>bEnd?-1:aEnd<bEnd?1:0
+  })
   vEl.innerHTML=visits.length
     ?visits.map(v=>`
         <div class="vitem" id="vi-${v.id}" onclick="openVDetail('${v.id}')">
           <div class="vitem-left">
-            <div class="vdate">${fmtDate(v.date)}</div>
+            <div class="vdate">${fmtDate(v.date,v.date_end)}</div>
             <div class="vcrew"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${esc(v.tech||'Cody & Sal')}</div>
           </div>
           ${canWrite?`<div class="vitem-right" onclick="event.stopPropagation()">
@@ -1395,7 +1510,7 @@ window.openVDetail=function(vid){
   curVDetailId=vid
   const role=currentProfile?.role
   const canWrite=role==='admin'||role==='crew'
-  document.getElementById('vdDate').textContent=fmtDate(v.date)
+  document.getElementById('vdDate').textContent=fmtDate(v.date,v.date_end)
   document.getElementById('vdCrew').textContent=v.tech||'Cody & Sal'
   document.getElementById('vdNotes').textContent=v.notes||'No notes.'
   document.getElementById('vdConfirmBar').classList.remove('show')
@@ -1415,15 +1530,26 @@ window.editVisitFromDetail=function(){ closeVDetail(); editVisit(curVDetailId) }
 window.confirmDelVisitFromDetail=function(){ document.getElementById('vdConfirmBar').classList.add('show') }
 window.deleteVisitFromDetail=async function(){ await deleteVisit(curVDetailId); closeVDetail() }
 
+// ── VISIT DATE TYPE ───────────────────────────────────────────────────────────
+window.setDateType=function(type){
+  const isRange=type==='range'
+  document.getElementById('dtSingle').classList.toggle('active',!isRange)
+  document.getElementById('dtRange').classList.toggle('active',isRange)
+  document.getElementById('vDateEndWrap').style.display=isRange?'':'none'
+  document.getElementById('vDateLabel').textContent=isRange?'Start Date':'Date'
+}
+
 // ── VISIT MODAL ───────────────────────────────────────────────────────────────
 window.openNewVisit=function(){
   if(currentProfile?.role==='guest') return
   editVisitId=null; visitImgs=[]; markClean()
   document.getElementById('vDate').value=today()
+  document.getElementById('vDateEnd').value=today()
   document.getElementById('vTech').value='Cody & Sal'
   document.getElementById('vNotes').value=''
   document.getElementById('vImgPreview').innerHTML=''
   document.getElementById('visitModalTitle').textContent='Log Visit'
+  setDateType('single')
   setTimeout(()=>{
     document.querySelectorAll('#visitOverlay input,#visitOverlay textarea').forEach(el=>{
       el.addEventListener('input',markDirty)
@@ -1441,10 +1567,12 @@ window.editVisit=function(vid){
   const v=loc&&(loc.visits||[]).find(x=>x.id===vid); if(!v) return
   editVisitId=vid; visitImgs=[...(v.images||[])]
   document.getElementById('vDate').value=v.date||today()
+  document.getElementById('vDateEnd').value=v.date_end||v.date||today()
   document.getElementById('vTech').value=v.tech||'Cody & Sal'
   document.getElementById('vNotes').value=v.notes||''
   renderPrev('visit','vImgPreview')
   document.getElementById('visitModalTitle').textContent='Edit Visit'
+  setDateType(v.date_end && v.date_end!==v.date ? 'range' : 'single')
   document.getElementById('visitOverlay').classList.add('open')
 }
 window.saveVisit=async function(){
@@ -1455,11 +1583,13 @@ window.saveVisit=async function(){
   const btn=document.getElementById('saveVisitBtn')
   btn.disabled=true; btn.textContent='Saving…'
   const visits=[...(loc.visits||[])]
+  const isRange=document.getElementById('dtRange').classList.contains('active')
+  const dateEnd=isRange?document.getElementById('vDateEnd').value:null
   if(editVisitId){
     const idx=visits.findIndex(v=>v.id===editVisitId)
-    if(idx>-1) visits[idx]={...visits[idx],date:document.getElementById('vDate').value,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]}
+    if(idx>-1) visits[idx]={...visits[idx],date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]}
   }else{
-    visits.push({id:crypto.randomUUID(),date:document.getElementById('vDate').value,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]})
+    visits.push({id:crypto.randomUUID(),date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]})
   }
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
@@ -1558,13 +1688,21 @@ function renderCards(){
       if(aL&&!bL) return 1; if(!aL&&bL) return -1; return a.localeCompare(b)
     })
     content.innerHTML=sortedStates.map(state=>{
-      const locs=groups[state]
+      const locs=groups[state].slice().sort((a,b)=>{
+        const at=(a.title||a.address||'').toLowerCase()
+        const bt=(b.title||b.address||'').toLowerCase()
+        return at.localeCompare(bt)
+      })
       const isCollapsed=collapsedStates.has(state)
       const cardsHtml=locs.map(loc=>{
         const visits=loc.visits||[]
         const lastVisit=visits.length
-          ? [...visits].sort((a,b)=>a.date>b.date?-1:1)[0].date
+          ? [...visits].sort((a,b)=>{
+              const aEnd=a.date_end||a.date, bEnd=b.date_end||b.date
+              return aEnd>bEnd?-1:aEnd<bEnd?1:0
+            })[0]
           : null
+        const lastVisitDate=lastVisit?(lastVisit.date_end||lastVisit.date):null
         const neverVisited=visits.length===0
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
         const thumbs=(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${i.dataUrl}" alt="" />`).join('')
@@ -1579,7 +1717,7 @@ function renderCards(){
               <div class="card-tags">${tags}</div>
               <div style="text-align:right">
                 <div class="visit-badge ${neverVisited?'never':''}"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div>
-                ${lastVisit?`<div class="last-visit">Last: ${fmtDate(lastVisit)}</div>`:`<div class="last-visit" style="color:var(--red)">Never visited</div>`}
+                ${lastVisitDate?`<div class="last-visit">Last: ${fmtDate(lastVisitDate)}</div>`:`<div class="last-visit" style="color:var(--red)">Never visited</div>`}
               </div>
             </div>
           </div>
