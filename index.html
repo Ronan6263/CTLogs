@@ -8,72 +8,75 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg:        #0c0d10;
-  --surface:   #13151a;
-  --panel:     #191c23;
-  --panel2:    #1f2330;
-  --border:    #272b36;
-  --border-hi: #363c4e;
-  --amber:     #e8a020;
-  --amber-dim: #9e6c0e;
-  --amber-glow:#e8a02030;
-  --teal:      #2ec4b6;
-  --teal-dim:  #1a7a72;
-  --teal-glow: #2ec4b620;
-  --red:       #e05540;
-  --red-glow:  #e0554018;
-  --text:      #c8cedc;
-  --text-dim:  #6e7585;
-  --text-faint:#353a48;
-  --mono:      'Share Tech Mono', monospace;
-  --body:      'Barlow', sans-serif;
-  --cond:      'Barlow Condensed', sans-serif;
-  --radius:    6px;
-  --radius-lg: 12px;
-  --shadow:    0 8px 32px rgba(0,0,0,0.5);
+:root{
+  --bg:#0c0d10;--surface:#13151a;--panel:#191c23;--panel2:#1f2330;
+  --border:#272b36;--border-hi:#363c4e;
+  --amber:#e8a020;--amber-dim:#9e6c0e;--amber-glow:#e8a02030;
+  --teal:#2ec4b6;--teal-dim:#1a7a72;--teal-glow:#2ec4b620;
+  --red:#e05540;--red-glow:#e0554018;
+  --text:#c8cedc;--text-dim:#6e7585;--text-faint:#353a48;
+  --mono:'Share Tech Mono',monospace;--body:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;
+  --radius:6px;--radius-lg:12px;--shadow:0 8px 32px rgba(0,0,0,0.5);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;height:100%}
-body{
-  background:var(--bg);color:var(--text);font-family:var(--body);
-  font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size:180px;pointer-events:none;z-index:9999;opacity:0.5;
-}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:180px;pointer-events:none;z-index:9999;opacity:0.5}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px}
 
-/* TOPBAR */
-.topbar{
-  position:sticky;top:0;z-index:200;
-  background:rgba(12,13,16,0.9);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;height:62px;
+/* ── AUTH SCREEN ── */
+#authScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+#authScreen.hidden{display:none}
+#plexusCanvas{position:absolute;inset:0;width:100%;height:100%}
+.auth-card{
+  position:relative;z-index:2;
+  background:rgba(19,21,26,0.92);
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:40px 36px;width:100%;max-width:420px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.6);
+  backdrop-filter:blur(12px);
 }
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+.auth-hex{width:40px;height:40px;border:2px solid var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--amber);box-shadow:0 0 20px var(--amber-glow)}
+.auth-brand{font-family:var(--mono);font-size:22px;color:var(--amber);letter-spacing:0.06em}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.auth-tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);background:transparent;border:none;transition:all 0.17s}
+.auth-tab.active{background:var(--amber);color:#0c0d10}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.auth-form.hidden{display:none}
+.auth-field{display:flex;flex-direction:column;gap:6px}
+.auth-label{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)}
+.auth-input{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%}
+.auth-input::placeholder{color:var(--text-faint)}
+.auth-input:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px var(--amber-glow)}
+.auth-check-row{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-dim);cursor:pointer}
+.auth-check-row input{accent-color:var(--amber);width:15px;height:15px;cursor:pointer}
+.auth-btn{background:var(--amber);color:#0c0d10;border:none;border-radius:var(--radius);padding:12px;font-family:var(--cond);font-size:15px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all 0.17s;width:100%;margin-top:4px}
+.auth-btn:hover{background:#f0b030;box-shadow:0 0 20px var(--amber-glow)}
+.auth-btn:disabled{opacity:0.4;pointer-events:none}
+.auth-msg{font-size:13px;padding:10px 13px;border-radius:var(--radius);text-align:center;display:none}
+.auth-msg.show{display:block}
+.auth-msg.ok{background:var(--teal-glow);border:1px solid var(--teal-dim);color:var(--teal)}
+.auth-msg.err{background:var(--red-glow);border:1px solid var(--red);color:var(--red)}
+.auth-pending{text-align:center;padding:20px 0 8px;font-size:13px;color:var(--text-dim);line-height:1.7}
+.auth-pending strong{color:var(--amber);display:block;font-size:15px;margin-bottom:6px}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(12,13,16,0.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:62px}
 .logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
-.logo-hex{
-  width:34px;height:34px;border:2px solid var(--amber);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;color:var(--amber);box-shadow:0 0 14px var(--amber-glow);flex-shrink:0;
-}
+.logo-hex{width:34px;height:34px;border:2px solid var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--amber);box-shadow:0 0 14px var(--amber-glow);flex-shrink:0}
 .logo-text{font-family:var(--mono);font-size:17px;color:var(--amber);letter-spacing:0.06em}
 .logo-sub{font-family:var(--cond);font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase}
 .topbar-right{display:flex;align-items:center;gap:10px}
+.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px}
+.role-badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:0.08em}
+.role-admin{background:var(--amber-glow);border:1px solid var(--amber-dim);color:var(--amber)}
+.role-crew{background:var(--teal-glow);border:1px solid var(--teal-dim);color:var(--teal)}
+.role-guest{background:var(--panel2);border:1px solid var(--border);color:var(--text-dim)}
+.role-pending{background:var(--red-glow);border:1px solid var(--red);color:var(--red)}
 
-/* BUTTONS */
-.btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:10px 18px;border-radius:var(--radius);border:none;cursor:pointer;
-  font-family:var(--cond);font-size:14px;font-weight:700;
-  letter-spacing:0.05em;text-transform:uppercase;
-  transition:all 0.17s;white-space:nowrap;outline:none;
-}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--radius);border:none;cursor:pointer;font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.17s;white-space:nowrap;outline:none}
 .btn-primary{background:var(--amber);color:#0c0d10}
 .btn-primary:hover{background:#f0b030;box-shadow:0 0 18px var(--amber-glow)}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
@@ -85,64 +88,43 @@ body::before{
 .btn-sm{padding:6px 13px;font-size:12px}
 .btn:disabled{opacity:0.4;pointer-events:none}
 
-/* SHELL */
+/* ── SHELL ── */
 .shell{max-width:1180px;margin:0 auto;padding:32px 24px 100px}
+#appScreen{display:none}
+#appScreen.visible{display:block}
 
-/* SEARCH */
+/* ── SEARCH ── */
 .search-row{display:flex;gap:12px;margin-bottom:24px;align-items:center}
-.search-wrap{flex:1;position:relative}
-.search-input{
-  width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:11px 14px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;
-  transition:border-color 0.2s,box-shadow 0.2s;
-}
+.search-wrap{flex:1}
+.search-input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
 .search-input::placeholder{color:var(--text-faint)}
 .search-input:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px var(--amber-glow)}
 
-/* STATS */
+/* ── STATS ── */
 .stats-row{display:flex;gap:12px;margin-bottom:26px;flex-wrap:wrap}
-.stat-chip{
-  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:7px 15px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);
-}
+.stat-chip{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:7px 15px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim)}
 .stat-chip strong{color:var(--text);font-size:15px}
 
-/* STATE GROUPS */
+/* ── STATE GROUPS ── */
 .state-group{margin-bottom:38px}
 .state-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;user-select:none}
 .state-header:hover .state-label{background:var(--amber);color:#0c0d10}
-.state-label{
-  font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;
-  color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);
-  border-radius:4px;padding:4px 12px;white-space:nowrap;transition:background 0.15s,color 0.15s;
-}
+.state-label{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);border-radius:4px;padding:4px 12px;white-space:nowrap;transition:background 0.15s,color 0.15s}
 .state-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
 .state-count{font-family:var(--mono);font-size:11px;color:var(--text-faint);white-space:nowrap}
-.state-chevron{
-  font-size:11px;color:var(--text-dim);transition:transform 0.2s;
-  display:flex;align-items:center;flex-shrink:0;
-}
+.state-chevron{font-size:11px;color:var(--text-dim);transition:transform 0.2s;display:flex;align-items:center;flex-shrink:0}
 .state-group.collapsed .state-chevron{transform:rotate(-90deg)}
-.state-body{
-  overflow:hidden;
-  transition:opacity 0.2s;
-}
 .state-group.collapsed .state-body{display:none}
 
-/* CARDS */
+/* ── CARDS ── */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
-.card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);overflow:hidden;
-  cursor:pointer;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
-}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s}
 .card:hover{border-color:var(--amber-dim);transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,0.4),0 0 0 1px var(--amber-dim)}
 .card-stripe{height:3px;background:linear-gradient(90deg,var(--amber),var(--teal))}
 .card-body{padding:18px 20px 14px}
 .card-title{font-family:var(--cond);font-size:18px;font-weight:700;color:#eef1f8;margin-bottom:2px;line-height:1.3}
 .card-siteid{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-bottom:8px}
 .card-address{font-size:13px;color:var(--text-dim);display:flex;align-items:flex-start;gap:6px;margin-bottom:9px}
-.card-address svg{flex-shrink:0;margin-top:2px}
 .card-desc{font-size:13px;color:var(--text-dim);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px}
 .card-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:11px}
 .card-tags{display:flex;gap:6px;flex-wrap:wrap}
@@ -154,32 +136,19 @@ body::before{
 .card-thumbs{display:flex;gap:6px;padding:0 20px 14px;overflow-x:auto}
 .card-thumb{width:64px;height:52px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0}
 
-/* EMPTY */
+/* ── EMPTY ── */
 .empty{text-align:center;padding:80px 20px;color:var(--text-dim)}
 .empty .eico{font-size:46px;opacity:0.3;margin-bottom:16px}
 .empty h3{font-family:var(--cond);font-size:22px;color:var(--text);margin-bottom:6px}
 .empty p{font-size:14px;max-width:300px;margin:0 auto}
 
-/* OVERLAY */
-.overlay{
-  display:none;position:fixed;inset:0;z-index:300;
-  background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);
-  overflow-y:auto;padding:36px 18px;
-}
+/* ── OVERLAY / MODAL ── */
+.overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);overflow-y:auto;padding:36px 18px}
 .overlay.open{display:flex;align-items:flex-start;justify-content:center}
-
-/* MODAL */
-.modal{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);width:100%;max-width:680px;
-  position:relative;animation:slideUp 0.2s ease;
-}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:680px;position:relative;animation:slideUp 0.2s ease}
 .modal-wide{max-width:880px}
 @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-head{
-  padding:22px 24px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-}
+.modal-head{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .modal-title{font-family:var(--cond);font-size:21px;font-weight:700;color:#eef1f8;display:flex;align-items:center;gap:10px}
 .mta{color:var(--amber)}
 .mclose{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:22px;padding:4px 6px;border-radius:4px;transition:color 0.15s;line-height:1}
@@ -187,75 +156,40 @@ body::before{
 .modal-body{padding:24px}
 .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
 
-/* FORM */
+/* ── FORM ── */
 .fg{margin-bottom:18px}
 .frow{display:flex;gap:14px}
 .frow .fg{flex:1}
 label{display:block;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
-input[type=text],input[type=date],textarea,select{
-  width:100%;background:var(--panel);border:1px solid var(--border);
-  border-radius:var(--radius);padding:10px 13px;
-  color:var(--text);font-family:var(--body);font-size:14px;outline:none;
-  transition:border-color 0.2s,box-shadow 0.2s;resize:vertical;
-}
+input[type=text],input[type=date],textarea,select{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;resize:vertical}
 input::placeholder,textarea::placeholder{color:var(--text-faint)}
 input:focus,textarea:focus,select:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px var(--amber-glow)}
 textarea{min-height:90px}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 
-/* GPS */
-.addr-wrap{position:relative;display:flex;gap:8px;align-items:center}
+/* ── GPS ── */
+.addr-wrap{display:flex;gap:8px;align-items:center}
 .addr-wrap input{flex:1}
-.btn-gps{
-  flex-shrink:0;background:var(--panel2);border:1px solid var(--border);
-  border-radius:var(--radius);padding:10px 12px;cursor:pointer;
-  color:var(--teal);font-size:16px;line-height:1;
-  transition:border-color 0.17s,background 0.17s;white-space:nowrap;
-  display:flex;align-items:center;gap:6px;
-  font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;
-}
+.btn-gps{flex-shrink:0;background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;color:var(--teal);transition:border-color 0.17s,background 0.17s;display:flex;align-items:center;gap:6px;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
 .btn-gps:hover{border-color:var(--teal-dim);background:var(--teal-glow)}
 .btn-gps:disabled{opacity:0.4;pointer-events:none}
-.btn-gps svg{flex-shrink:0}
-.template-bar{
-  background:var(--panel2);border:1px solid var(--border);
-  border-radius:var(--radius);padding:14px 16px;
-  margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-}
+
+/* ── TEMPLATE BAR ── */
+.template-bar{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .template-bar label{margin:0;white-space:nowrap}
 .template-bar select{flex:1;min-width:180px;margin:0}
 
-/* FIRST VISIT TOGGLE */
-.visit-toggle-row{
-  display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;
-}
-.visit-toggle-row input[type=checkbox]{
-  width:18px;height:18px;flex-shrink:0;cursor:pointer;
-  accent-color:var(--teal);padding:0;border:none;background:none;
-}
-.visit-toggle-label{
-  font-family:var(--cond);font-size:13px;font-weight:700;
-  letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);cursor:pointer;
-}
-.first-visit-block{
-  margin-top:16px;padding:18px;
-  background:var(--panel2);border:1px solid var(--teal-dim);
-  border-radius:var(--radius);display:none;
-}
+/* ── FIRST VISIT TOGGLE ── */
+.visit-toggle-row{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.visit-toggle-row input[type=checkbox]{width:18px;height:18px;flex-shrink:0;cursor:pointer;accent-color:var(--teal);padding:0;border:none;background:none}
+.visit-toggle-label{font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);cursor:pointer}
+.first-visit-block{margin-top:16px;padding:18px;background:var(--panel2);border:1px solid var(--teal-dim);border-radius:var(--radius);display:none}
 .first-visit-block.open{display:block}
-.fvtitle{
-  font-family:var(--cond);font-size:13px;font-weight:700;
-  color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:14px;display:flex;align-items:center;gap:8px;
-}
+.fvtitle{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .fvtitle::after{content:'';flex:1;height:1px;background:var(--teal-dim);opacity:0.4}
 
-/* UPLOAD */
-.upload-zone{
-  border:2px dashed var(--border);border-radius:var(--radius);
-  padding:22px;text-align:center;cursor:pointer;
-  transition:border-color 0.2s,background 0.2s;position:relative;
-}
+/* ── UPLOAD ── */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative}
 .upload-zone:hover{border-color:var(--amber-dim);background:var(--amber-glow)}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;padding:0;border:none;background:none}
 .upload-zone .uico{font-size:22px;margin-bottom:5px}
@@ -263,27 +197,15 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .preview-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .prev-item{position:relative;width:80px}
 .prev-item img{width:80px;height:66px;object-fit:cover;border-radius:4px;border:1px solid var(--border);display:block}
-.prev-item .rm{
-  position:absolute;top:-6px;right:-6px;width:18px;height:18px;
-  background:var(--red);border-radius:50%;border:none;cursor:pointer;
-  color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;
-}
+.prev-item .rm{position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:var(--red);border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
 .prev-lbl{font-family:var(--mono);font-size:10px;color:var(--text-faint);text-align:center;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* DETAIL */
+/* ── DETAIL ── */
 .det-hero{padding:24px 24px 0}
 .det-title{font-family:var(--cond);font-size:28px;font-weight:800;color:#eef1f8;margin-bottom:5px;line-height:1.2}
 .det-addr{display:flex;align-items:center;gap:7px;color:var(--text-dim);font-size:14px;margin-bottom:16px}
-.det-desc{
-  color:var(--text);font-size:14px;line-height:1.75;
-  padding:15px;background:var(--panel);border-radius:var(--radius);
-  border-left:3px solid var(--amber);margin-bottom:22px;white-space:pre-wrap;
-}
-.sec-title{
-  font-family:var(--cond);font-size:12px;font-weight:700;
-  letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);
-  margin-bottom:12px;display:flex;align-items:center;gap:9px;
-}
+.det-desc{color:var(--text);font-size:14px;line-height:1.75;padding:15px;background:var(--panel);border-radius:var(--radius);border-left:3px solid var(--amber);margin-bottom:22px;white-space:pre-wrap}
+.sec-title{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:9px}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
 .det-images{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
 .det-img-wrap{cursor:pointer;border-radius:6px;overflow:hidden}
@@ -294,83 +216,56 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 .det-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
 
-/* VISITS */
+/* ── VISITS ── */
 .visit-list{display:flex;flex-direction:column;gap:6px}
-.vitem{
-  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:9px 14px;transition:border-color 0.15s;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  cursor:pointer;
-}
+.vitem{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;transition:border-color 0.15s;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
 .vitem:hover{border-color:var(--teal-dim)}
 .vitem-left{display:flex;align-items:center;gap:16px;min-width:0}
 .vdate{font-family:var(--mono);font-size:13px;color:var(--teal);white-space:nowrap;flex-shrink:0}
 .vcrew{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;white-space:nowrap}
 .vitem-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.confirm-bar{
-  display:none;background:var(--red-glow);border:1px solid var(--red);
-  border-radius:var(--radius);padding:10px 14px;margin-top:6px;
-  font-size:13px;align-items:center;gap:10px;flex-wrap:wrap;
-}
+.confirm-bar{display:none;background:var(--red-glow);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;margin-top:6px;font-size:13px;align-items:center;gap:10px;flex-wrap:wrap}
 .confirm-bar.show{display:flex}
 
-/* VISIT DETAIL POPUP */
-.vdetail-overlay{
-  display:none;position:fixed;inset:0;z-index:400;
-  background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);
-  overflow-y:auto;padding:36px 18px;
-}
+/* ── VISIT DETAIL POPUP ── */
+.vdetail-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);overflow-y:auto;padding:36px 18px}
 .vdetail-overlay.open{display:flex;align-items:flex-start;justify-content:center}
-.vdetail-modal{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);width:100%;max-width:640px;
-  animation:slideUp 0.2s ease;
-}
-.vdetail-head{
-  padding:20px 24px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-}
+.vdetail-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:640px;animation:slideUp 0.2s ease}
+.vdetail-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .vdetail-title{font-family:var(--cond);font-size:19px;font-weight:700;color:#eef1f8;display:flex;align-items:center;gap:10px}
 .vdetail-body{padding:22px 24px}
 .vdetail-meta{display:flex;align-items:center;gap:18px;margin-bottom:18px;flex-wrap:wrap}
 .vdetail-date{font-family:var(--mono);font-size:14px;color:var(--teal)}
 .vdetail-crew{font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px}
-.vdetail-notes{
-  font-size:14px;color:var(--text);line-height:1.75;white-space:pre-wrap;
-  padding:14px;background:var(--panel);border-radius:var(--radius);
-  border-left:3px solid var(--teal);margin-bottom:18px;
-}
+.vdetail-notes{font-size:14px;color:var(--text);line-height:1.75;white-space:pre-wrap;padding:14px;background:var(--panel);border-radius:var(--radius);border-left:3px solid var(--teal);margin-bottom:18px}
 .vdetail-images{display:flex;gap:10px;flex-wrap:wrap}
-.vdetail-foot{
-  padding:14px 24px;border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-}
-.vconfirm-bar{
-  display:none;background:var(--red-glow);border:1px solid var(--red);
-  border-radius:var(--radius);padding:10px 16px;margin:0 24px 16px;
-  font-size:13px;align-items:center;gap:10px;flex-wrap:wrap;
-}
+.vdetail-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.vconfirm-bar{display:none;background:var(--red-glow);border:1px solid var(--red);border-radius:var(--radius);padding:10px 16px;margin:0 24px 16px;font-size:13px;align-items:center;gap:10px;flex-wrap:wrap}
 .vconfirm-bar.show{display:flex}
 
-/* LIGHTBOX */
+/* ── ADMIN PANEL ── */
+.admin-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);overflow-y:auto;padding:36px 18px}
+.admin-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.admin-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:700px;animation:slideUp 0.2s ease}
+.user-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.user-row:last-child{border-bottom:none}
+.user-email{font-size:13px;color:var(--text);font-family:var(--mono);word-break:break-all}
+.user-role-select{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;outline:none;cursor:pointer}
+.user-role-select:focus{border-color:var(--amber-dim)}
+
+/* ── LIGHTBOX ── */
 .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.94);align-items:center;justify-content:center;cursor:zoom-out}
 .lightbox.open{display:flex}
 .lightbox img{max-width:90vw;max-height:90vh;border-radius:6px;box-shadow:0 0 60px rgba(0,0,0,0.9);cursor:default}
 .lb-close{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer;background:none;border:none;line-height:1}
 
-/* LOADER */
+/* ── LOADER ── */
 .loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:14px;color:var(--text-dim);font-family:var(--mono);font-size:13px}
 .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* TOAST */
-.toast{
-  position:fixed;bottom:24px;right:24px;z-index:600;
-  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:12px 18px;font-size:14px;box-shadow:var(--shadow);
-  display:flex;align-items:center;gap:10px;
-  transform:translateY(80px);opacity:0;transition:all 0.25s ease;max-width:320px;
-}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:700;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all 0.25s ease;max-width:320px}
 .toast.show{transform:translateY(0);opacity:1}
 .toast-ok{border-color:var(--teal)}
 .toast-err{border-color:var(--red)}
@@ -382,39 +277,110 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   .shell{padding:20px 14px 80px}
   .det-title{font-size:22px}
   .template-bar{flex-direction:column;align-items:stretch}
+  .auth-card{padding:28px 20px}
 }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="logo" onclick="closeDetailModal()">
-    <div class="logo-hex">⬡</div>
-    <div>
-      <div class="logo-text">CT LOGS</div>
-      <div class="logo-sub">Field Service Database</div>
+<!-- ══ AUTH SCREEN ══ -->
+<div id="authScreen">
+  <canvas id="plexusCanvas"></canvas>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-hex">⬡</div>
+      <div class="auth-brand">CT LOGS</div>
     </div>
-  </div>
-  <div class="topbar-right">
-    <button class="btn btn-primary" onclick="openNewLocation()">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      New Location
-    </button>
-  </div>
-</header>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
+    </div>
 
-<main class="shell">
-  <div class="search-row">
-    <div class="search-wrap">
-      <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" />
+    <!-- LOGIN -->
+    <div class="auth-form" id="loginForm">
+      <div class="auth-field">
+        <div class="auth-label">Email</div>
+        <input class="auth-input" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <div class="auth-label">Password</div>
+        <input class="auth-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <label class="auth-check-row">
+        <input type="checkbox" id="stayLoggedIn" checked />
+        Stay logged in
+      </label>
+      <div class="auth-msg" id="loginMsg"></div>
+      <button class="auth-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
     </div>
-    <button class="btn btn-ghost btn-sm" id="collapseAllBtn" onclick="toggleAllGroups()" style="white-space:nowrap">Collapse All</button>
+
+    <!-- REGISTER -->
+    <div class="auth-form hidden" id="registerForm">
+      <div class="auth-field">
+        <div class="auth-label">Email</div>
+        <input class="auth-input" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <div class="auth-label">Password</div>
+        <input class="auth-input" id="regPassword" type="password" placeholder="Min. 8 characters" autocomplete="new-password" />
+      </div>
+      <div class="auth-field">
+        <div class="auth-label">Confirm Password</div>
+        <input class="auth-input" id="regConfirm" type="password" placeholder="Repeat password" autocomplete="new-password" />
+      </div>
+      <div class="auth-msg" id="registerMsg"></div>
+      <button class="auth-btn" id="registerBtn" onclick="doRegister()">Create Account</button>
+      <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:4px">After email verification, an admin must approve your account before you can access the app.</p>
+    </div>
+
+    <!-- PENDING STATE -->
+    <div class="auth-form hidden" id="pendingForm">
+      <div class="auth-pending">
+        <strong>Account Pending Approval</strong>
+        Your account has been verified but is awaiting admin approval.<br>You'll be able to log in once approved.
+      </div>
+      <button class="auth-btn" style="background:var(--panel);color:var(--text-dim);border:1px solid var(--border);margin-top:8px" onclick="doLogout()">Sign Out</button>
+    </div>
   </div>
-  <div class="stats-row" id="statsRow"></div>
-  <div id="mainContent">
-    <div class="loader"><div class="spinner"></div>Connecting to database…</div>
-  </div>
-</main>
+</div>
+
+<!-- ══ APP SCREEN ══ -->
+<div id="appScreen">
+  <header class="topbar">
+    <div class="logo" onclick="closeDetailModal()">
+      <div class="logo-hex">⬡</div>
+      <div>
+        <div class="logo-text">CT LOGS</div>
+        <div class="logo-sub">Field Service Database</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <span id="userEmailChip" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span class="role-badge" id="userRoleBadge"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="adminPanelBtn" onclick="openAdminPanel()" style="display:none">Admin</button>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button>
+      <button class="btn btn-primary" id="newLocBtn" onclick="openNewLocation()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        New Location
+      </button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="search-row">
+      <div class="search-wrap">
+        <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" />
+      </div>
+      <button class="btn btn-ghost btn-sm" id="collapseAllBtn" onclick="toggleAllGroups()" style="white-space:nowrap">Collapse All</button>
+    </div>
+    <div class="stats-row" id="statsRow"></div>
+    <div id="mainContent">
+      <div class="loader"><div class="spinner"></div>Loading…</div>
+    </div>
+  </main>
+</div>
 
 <!-- LOCATION MODAL -->
 <div class="overlay" id="locOverlay">
@@ -424,14 +390,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <button class="mclose" onclick="closeLocModal()">✕</button>
     </div>
     <div class="modal-body">
-
       <div class="template-bar" id="templateBar">
         <label>Copy from existing:</label>
-        <select id="templateSelect" onchange="applyTemplate()">
-          <option value="">— Start blank —</option>
-        </select>
+        <select id="templateSelect" onchange="applyTemplate()"><option value="">— Start blank —</option></select>
       </div>
-
       <div class="frow">
         <div class="fg">
           <label>Site Name / Title *</label>
@@ -446,7 +408,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <label>Address *</label>
         <div class="addr-wrap">
           <input type="text" id="lAddress" placeholder="123 Industrial Dr, Concord NH" />
-          <button class="btn-gps" id="gpsBtn" onclick="gpsAutofill()" title="Use my current location">
+          <button class="btn-gps" id="gpsBtn" onclick="gpsAutofill()" title="Use my GPS location">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>
             GPS
           </button>
@@ -454,7 +416,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       </div>
       <div class="fg">
         <label>Description / Notes</label>
-        <textarea id="lDesc" placeholder="Water source type, access instructions, power board location, chemical dosing notes, contact info, hazards…"></textarea>
+        <textarea id="lDesc" placeholder="Water source type, access instructions, power board location…"></textarea>
       </div>
       <div class="fg">
         <label>Tags <span style="text-transform:none;font-weight:400;letter-spacing:0;font-family:var(--body)">(comma separated)</span></label>
@@ -464,13 +426,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <label>Site Images</label>
         <div class="upload-zone">
           <div class="uico">📷</div>
-          <div class="ulbl">Tap or click to upload photos<br><small style="color:var(--text-faint)">Water locations, power boards, access points…</small></div>
+          <div class="ulbl">Tap or click to upload photos</div>
           <input type="file" id="lImgInput" multiple accept="image/*" onchange="stageImgs('loc',this)" />
         </div>
         <div class="preview-grid" id="lImgPreview"></div>
       </div>
-
-      <!-- First visit toggle — hidden when editing -->
       <div class="fg" id="firstVisitToggleWrap">
         <div class="visit-toggle-row" onclick="toggleFirstVisit()">
           <input type="checkbox" id="firstVisitCheck" onclick="event.stopPropagation()" onchange="toggleFirstVisit(true)" />
@@ -479,31 +439,21 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <div class="first-visit-block" id="firstVisitBlock">
           <div class="fvtitle">First Visit Details</div>
           <div class="frow">
-            <div class="fg">
-              <label>Date</label>
-              <input type="date" id="fvDate" />
-            </div>
-            <div class="fg">
-              <label>Crew</label>
-              <input type="text" id="fvTech" placeholder="Cody &amp; Sal" />
-            </div>
+            <div class="fg"><label>Date</label><input type="date" id="fvDate" /></div>
+            <div class="fg"><label>Crew</label><input type="text" id="fvTech" placeholder="Cody &amp; Sal" /></div>
           </div>
-          <div class="fg">
-            <label>Work Performed / Notes</label>
-            <textarea id="fvNotes" placeholder="Chemical dosing, cleaning, inspection findings, water readings…" style="min-height:100px"></textarea>
-          </div>
+          <div class="fg"><label>Work Performed / Notes</label><textarea id="fvNotes" placeholder="Chemical dosing, cleaning, inspection findings…" style="min-height:100px"></textarea></div>
           <div class="fg">
             <label>Visit Photos</label>
             <div class="upload-zone">
               <div class="uico">📸</div>
-              <div class="ulbl">Before/after photos, readings, labels…</div>
+              <div class="ulbl">Before/after photos, readings…</div>
               <input type="file" id="fvImgInput" multiple accept="image/*" onchange="stageImgs('fv',this)" />
             </div>
             <div class="preview-grid" id="fvImgPreview"></div>
           </div>
         </div>
       </div>
-
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeLocModal()">Cancel</button>
@@ -521,10 +471,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     </div>
     <div class="det-hero">
       <div class="det-title" id="dTitle"></div>
-      <div class="det-addr">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span id="dAddr"></span>
-      </div>
+      <div class="det-addr"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="dAddr"></span></div>
       <div class="det-desc" id="dDesc"></div>
       <div class="sec-title">Site Images</div>
       <div class="det-images" id="dImages"></div>
@@ -533,7 +480,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     <div class="det-section">
       <div class="sec-title">Visit Log</div>
       <div class="visit-list" id="visitList"></div>
-      <div style="margin-top:14px">
+      <div style="margin-top:14px" id="logVisitWrap">
         <button class="btn btn-teal btn-sm" onclick="openNewVisit()">
           <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           Log New Visit
@@ -541,10 +488,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       </div>
     </div>
     <div class="det-foot">
-      <button class="btn btn-danger btn-sm" onclick="confirmDeleteLoc()">Delete Location</button>
+      <button class="btn btn-danger btn-sm" id="deleteLocBtn" onclick="confirmDeleteLoc()">Delete Location</button>
       <div style="display:flex;gap:8px">
         <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
-        <button class="btn btn-ghost btn-sm" onclick="editCurLoc()">✏ Edit</button>
+        <button class="btn btn-ghost btn-sm" id="editLocBtn" onclick="editCurLoc()">✏ Edit</button>
       </div>
     </div>
     <div class="confirm-bar" id="delLocBar" style="margin:0 24px 20px">
@@ -564,19 +511,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     </div>
     <div class="modal-body">
       <div class="frow">
-        <div class="fg">
-          <label>Date</label>
-          <input type="date" id="vDate" />
-        </div>
-        <div class="fg">
-          <label>Crew</label>
-          <input type="text" id="vTech" placeholder="Cody &amp; Sal" />
-        </div>
+        <div class="fg"><label>Date</label><input type="date" id="vDate" /></div>
+        <div class="fg"><label>Crew</label><input type="text" id="vTech" placeholder="Cody &amp; Sal" /></div>
       </div>
-      <div class="fg">
-        <label>Work Performed / Notes</label>
-        <textarea id="vNotes" placeholder="Chemical dosing, cleaning, inspection findings, water readings…" style="min-height:130px"></textarea>
-      </div>
+      <div class="fg"><label>Work Performed / Notes</label><textarea id="vNotes" placeholder="Chemical dosing, cleaning, inspection findings…" style="min-height:130px"></textarea></div>
       <div class="fg">
         <label>Visit Photos</label>
         <div class="upload-zone">
@@ -604,26 +542,40 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     <div class="vdetail-body">
       <div class="vdetail-meta">
         <div class="vdetail-date" id="vdDate"></div>
-        <div class="vdetail-crew">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span id="vdCrew"></span>
-        </div>
+        <div class="vdetail-crew"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span id="vdCrew"></span></div>
       </div>
       <div class="vdetail-notes" id="vdNotes"></div>
       <div class="sec-title" id="vdImgTitle" style="display:none">Photos</div>
       <div class="vdetail-images" id="vdImages"></div>
     </div>
     <div class="vdetail-foot">
-      <button class="btn btn-danger btn-sm" onclick="confirmDelVisitFromDetail()">Delete</button>
+      <button class="btn btn-danger btn-sm" id="vdDeleteBtn" onclick="confirmDelVisitFromDetail()">Delete</button>
       <div style="display:flex;gap:8px">
         <button class="btn btn-ghost btn-sm" onclick="closeVDetail()">Close</button>
-        <button class="btn btn-ghost btn-sm" onclick="editVisitFromDetail()">✏ Edit</button>
+        <button class="btn btn-ghost btn-sm" id="vdEditBtn" onclick="editVisitFromDetail()">✏ Edit</button>
       </div>
     </div>
     <div class="vconfirm-bar" id="vdConfirmBar">
       Delete this visit entry permanently?
       <button class="btn btn-danger btn-sm" onclick="deleteVisitFromDetail()">Yes, Delete</button>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('vdConfirmBar').classList.remove('show')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-modal modal">
+    <div class="modal-head">
+      <div class="modal-title"><span class="mta">◆</span> Admin Panel</div>
+      <button class="mclose" onclick="closeAdminPanel()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-family:var(--cond);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">User Management</div>
+      <div id="userList"><div class="loader" style="padding:40px 20px"><div class="spinner"></div></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeAdminPanel()">Close</button>
     </div>
   </div>
 </div>
@@ -641,19 +593,72 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const sb = createClient(
   'https://njlhmdlnsqqczyafgwqg.supabase.co',
-  'sb_publishable_gz1MYDdmUvA0_QezdDZLgg_tgiLO2iv'
+  'sb_publishable_gz1MYDdmUvA0_QezdDZLgg_tgiLO2iv',
+  { auth: { persistSession: true, autoRefreshToken: true } }
 )
 
-// STATE
+// ── STATE ─────────────────────────────────────────────────────────────────────
 let locations   = []
 let curLocId    = null
 let editLocId   = null
 let editVisitId = null
-let locImgs     = []
-let visitImgs   = []
-let fvImgs      = []
+let locImgs=[], visitImgs=[], fvImgs=[]
+let curVDetailId = null
+let currentUser  = null   // supabase auth user
+let currentProfile = null // { id, email, role }
+const collapsedStates = new Set()
 
-// UTILS
+// ── PLEXUS ANIMATION ─────────────────────────────────────────────────────────
+function initPlexus(){
+  const canvas=document.getElementById('plexusCanvas')
+  const ctx=canvas.getContext('2d')
+  let W,H,nodes
+  const COUNT=80, CONNECT=120, AMBER='#e8a020', TEAL='#2ec4b6'
+
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight }
+  resize(); window.addEventListener('resize',()=>{ resize(); spawnNodes() })
+
+  function spawnNodes(){
+    nodes=Array.from({length:COUNT},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-.5)*0.4, vy:(Math.random()-.5)*0.4,
+      r:Math.random()*2+1,
+      color:Math.random()>.7?TEAL:AMBER
+    }))
+  }
+  spawnNodes()
+
+  function draw(){
+    ctx.clearRect(0,0,W,H)
+    for(let i=0;i<nodes.length;i++){
+      const a=nodes[i]
+      a.x+=a.vx; a.y+=a.vy
+      if(a.x<0||a.x>W) a.vx*=-1
+      if(a.y<0||a.y>H) a.vy*=-1
+      for(let j=i+1;j<nodes.length;j++){
+        const b=nodes[j]
+        const dx=a.x-b.x, dy=a.y-b.y
+        const d=Math.sqrt(dx*dx+dy*dy)
+        if(d<CONNECT){
+          const alpha=(1-d/CONNECT)*0.25
+          ctx.beginPath()
+          ctx.strokeStyle=a.color.replace(')',`,${alpha})`).replace('rgb','rgba').replace('#e8a020',`rgba(232,160,32,${alpha})`).replace('#2ec4b6',`rgba(46,196,182,${alpha})`)
+          ctx.lineWidth=0.8
+          ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke()
+        }
+      }
+      ctx.beginPath()
+      ctx.arc(a.x,a.y,a.r,0,Math.PI*2)
+      ctx.fillStyle=a.color+(a.color==='#e8a020'?'99':'88')
+      ctx.fill()
+    }
+    requestAnimationFrame(draw)
+  }
+  draw()
+}
+initPlexus()
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
 function today(){ return new Date().toISOString().slice(0,10) }
 function fmtDate(iso){
   if(!iso) return '—'
@@ -665,21 +670,143 @@ function toast(msg,type='ok'){
   const el=document.getElementById('toast')
   el.textContent=(type==='ok'?'✓ ':'✕ ')+msg
   el.className=`toast show toast-${type}`
-  clearTimeout(el._t)
-  el._t=setTimeout(()=>el.classList.remove('show'),2800)
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800)
 }
-
-// Extract trailing 2-letter state abbreviation from address
 function extractState(address){
   if(!address) return 'Unknown'
   const m=address.trim().match(/\b([A-Z]{2})\s*$/)
-  return m ? m[1] : 'Other'
+  return m?m[1]:'Other'
 }
 
-// SUPABASE — unchanged from original
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+window.switchTab=function(tab){
+  document.getElementById('loginForm').classList.toggle('hidden',tab!=='login')
+  document.getElementById('registerForm').classList.toggle('hidden',tab!=='register')
+  document.getElementById('pendingForm').classList.add('hidden')
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login')
+  document.getElementById('tabRegister').classList.toggle('active',tab==='register')
+}
+
+window.doLogin=async function(){
+  const email=document.getElementById('loginEmail').value.trim()
+  const pass=document.getElementById('loginPassword').value
+  const stay=document.getElementById('stayLoggedIn').checked
+  const msg=document.getElementById('loginMsg')
+  const btn=document.getElementById('loginBtn')
+  if(!email||!pass){showMsg(msg,'Please fill in all fields.','err');return}
+  btn.disabled=true; btn.textContent='Signing in…'
+
+  // Set session persistence based on stay logged in checkbox
+  await sb.auth.setSession && null // handled by persistSession:true
+  if(!stay){
+    // Override to session-only by signing out after tab close is handled by Supabase
+    // We store preference
+    sessionStorage.setItem('ctlogs_nosave','1')
+  } else {
+    sessionStorage.removeItem('ctlogs_nosave')
+  }
+
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass})
+  if(error){ showMsg(msg,error.message,'err'); btn.disabled=false; btn.textContent='Sign In'; return }
+  // check profile
+  await loadProfileAndEnter(data.user)
+  btn.disabled=false; btn.textContent='Sign In'
+}
+
+window.doRegister=async function(){
+  const email=document.getElementById('regEmail').value.trim()
+  const pass=document.getElementById('regPassword').value
+  const conf=document.getElementById('regConfirm').value
+  const msg=document.getElementById('registerMsg')
+  const btn=document.getElementById('registerBtn')
+  if(!email||!pass||!conf){showMsg(msg,'Please fill in all fields.','err');return}
+  if(pass!==conf){showMsg(msg,'Passwords do not match.','err');return}
+  if(pass.length<8){showMsg(msg,'Password must be at least 8 characters.','err');return}
+  btn.disabled=true; btn.textContent='Creating account…'
+
+  const {data,error}=await sb.auth.signUp({
+    email, password:pass,
+    options:{ emailRedirectTo: 'https://ctlogs.com' }
+  })
+  if(error){ showMsg(msg,error.message,'err'); btn.disabled=false; btn.textContent='Create Account'; return }
+
+  // Create profile row with pending role
+  if(data.user){
+    await sb.from('profiles').upsert({id:data.user.id, email, role:'pending'})
+  }
+  showMsg(msg,'Check your email to verify your account. After verification, an admin must approve access.','ok')
+  btn.disabled=false; btn.textContent='Create Account'
+}
+
+window.doLogout=async function(){
+  await sb.auth.signOut()
+  currentUser=null; currentProfile=null
+  document.getElementById('appScreen').classList.remove('visible')
+  document.getElementById('authScreen').classList.remove('hidden')
+  switchTab('login')
+}
+
+async function loadProfileAndEnter(user){
+  currentUser=user
+  // Fetch profile
+  const {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single()
+  if(!profile){
+    // Create pending profile if doesn't exist
+    await sb.from('profiles').upsert({id:user.id, email:user.email, role:'pending'})
+    currentProfile={id:user.id,email:user.email,role:'pending'}
+  } else {
+    currentProfile=profile
+  }
+
+  if(currentProfile.role==='pending'){
+    // Show pending state
+    document.getElementById('loginForm').classList.add('hidden')
+    document.getElementById('registerForm').classList.add('hidden')
+    document.getElementById('pendingForm').classList.remove('hidden')
+    return
+  }
+
+  // Enter the app
+  enterApp()
+}
+
+function enterApp(){
+  document.getElementById('authScreen').classList.add('hidden')
+  document.getElementById('appScreen').classList.add('visible')
+
+  // Set up user chip
+  document.getElementById('userEmailChip').textContent=currentProfile.email
+  const badge=document.getElementById('userRoleBadge')
+  badge.textContent=currentProfile.role
+  badge.className='role-badge role-'+currentProfile.role
+
+  // Show/hide admin button
+  document.getElementById('adminPanelBtn').style.display=currentProfile.role==='admin'?'':'none'
+
+  // Apply permissions to UI
+  applyPermissions()
+
+  // Load data
+  loadAndRender()
+}
+
+function applyPermissions(){
+  const role=currentProfile?.role
+  // Guest: hide new location button, hide edit/delete in detail
+  const canWrite=role==='admin'||role==='crew'
+  const isAdmin=role==='admin'
+  document.getElementById('newLocBtn').style.display=canWrite?'':'none'
+  // Detail modal buttons visibility handled in renderDetail
+}
+
+function showMsg(el,msg,type){
+  el.textContent=msg; el.className=`auth-msg show ${type}`
+}
+
+// ── SUPABASE DB ───────────────────────────────────────────────────────────────
 async function fetchAll(){
   const {data,error}=await sb.from('locations').select('*').order('created_at',{ascending:false})
-  if(error){ toast('DB error: '+error.message,'err'); return [] }
+  if(error){toast('DB error: '+error.message,'err');return[]}
   return data||[]
 }
 async function upsertLoc(loc){
@@ -691,19 +818,24 @@ async function deleteLoc_db(id){
   if(error) throw error
 }
 
-// IMAGE STAGING
+async function loadAndRender(){
+  document.getElementById('mainContent').innerHTML='<div class="loader"><div class="spinner"></div>Loading…</div>'
+  locations=await fetchAll()
+  renderCards()
+}
+
+// ── IMAGE STAGING ─────────────────────────────────────────────────────────────
 function stageImgs(target,input){
   const arr=target==='loc'?locImgs:target==='fv'?fvImgs:visitImgs
   const prevId=target==='loc'?'lImgPreview':target==='fv'?'fvImgPreview':'vImgPreview'
   Array.from(input.files).forEach(f=>{
     const r=new FileReader()
-    r.onload=e=>{ arr.push({name:f.name,dataUrl:e.target.result}); renderPrev(target,prevId) }
+    r.onload=e=>{arr.push({name:f.name,dataUrl:e.target.result});renderPrev(target,prevId)}
     r.readAsDataURL(f)
   })
   input.value=''
 }
 window.stageImgs=stageImgs
-
 function renderPrev(target,prevId){
   const arr=target==='loc'?locImgs:target==='fv'?fvImgs:visitImgs
   document.getElementById(prevId).innerHTML=arr.map((img,i)=>`
@@ -719,97 +851,65 @@ window.rmImg=function(target,i){
   else{visitImgs.splice(i,1);renderPrev('visit','vImgPreview')}
 }
 
-// FIRST VISIT TOGGLE
+// ── GPS ───────────────────────────────────────────────────────────────────────
+window.gpsAutofill=async function(){
+  if(!navigator.geolocation){toast('Geolocation not supported.','err');return}
+  const btn=document.getElementById('gpsBtn')
+  btn.disabled=true; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Locating…`
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const {latitude:lat,longitude:lng}=pos.coords
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'CTLogs-FieldApp'}})
+        const data=await res.json()
+        const a=data.address||{}
+        const street=[a.house_number,a.road].filter(Boolean).join(' ')
+        const city=a.city||a.town||a.village||a.hamlet||a.county||''
+        const state=a.state_code||a.state||''
+        const stateAbbr=state.length>2?stateAbbreviations[state]||state:state.toUpperCase()
+        document.getElementById('lAddress').value=[street,city,stateAbbr].filter(Boolean).join(', ')
+        toast('Address filled from GPS.')
+      }catch(e){
+        document.getElementById('lAddress').value=`${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        toast('GPS located — reverse geocode failed.','err')
+      }
+      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
+    },
+    err=>{
+      const msgs={1:'Location permission denied.',2:'Location unavailable.',3:'Location timed out.'}
+      toast(msgs[err.code]||'GPS error.','err')
+      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
+    },
+    {enableHighAccuracy:true,timeout:10000}
+  )
+}
+const stateAbbreviations={'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY','New South Wales':'NSW','Victoria':'VIC','Queensland':'QLD','South Australia':'SA','Western Australia':'WA','Tasmania':'TAS','Northern Territory':'NT','Australian Capital Territory':'ACT'}
+
+// ── TEMPLATE ──────────────────────────────────────────────────────────────────
+function populateTemplateSelect(){
+  const sel=document.getElementById('templateSelect')
+  sel.innerHTML='<option value="">— Start blank —</option>'
+  locations.forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.title||l.address||'Untitled';sel.appendChild(o)})
+}
+window.applyTemplate=function(){
+  const id=document.getElementById('templateSelect').value
+  if(!id) return
+  const src=locations.find(l=>l.id===id); if(!src) return
+  document.getElementById('lDesc').value=src.description||''
+  document.getElementById('lTags').value=(src.tags||[]).join(', ')
+  toast('Template applied.')
+}
+
+// ── FIRST VISIT TOGGLE ────────────────────────────────────────────────────────
 window.toggleFirstVisit=function(fromCheckbox){
   const cb=document.getElementById('firstVisitCheck')
   if(!fromCheckbox) cb.checked=!cb.checked
   document.getElementById('firstVisitBlock').classList.toggle('open',cb.checked)
 }
 
-// TEMPLATE
-function populateTemplateSelect(){
-  const sel=document.getElementById('templateSelect')
-  sel.innerHTML='<option value="">— Start blank —</option>'
-  locations.forEach(l=>{
-    const opt=document.createElement('option')
-    opt.value=l.id
-    opt.textContent=(l.title||l.address||'Untitled')
-    sel.appendChild(opt)
-  })
-}
-window.applyTemplate=function(){
-  const id=document.getElementById('templateSelect').value
-  if(!id) return
-  const src=locations.find(l=>l.id===id); if(!src) return
-  // Only copy description and tags — title/address/site_id/images stay blank for the new site
-  document.getElementById('lDesc').value=src.description||''
-  document.getElementById('lTags').value=(src.tags||[]).join(', ')
-  toast('Template applied — enter the new site details above.')
-}
-
-// GPS AUTOFILL
-window.gpsAutofill=async function(){
-  if(!navigator.geolocation){ toast('Geolocation not supported on this device.','err'); return }
-  const btn=document.getElementById('gpsBtn')
-  btn.disabled=true; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Locating…`
-
-  navigator.geolocation.getCurrentPosition(
-    async pos=>{
-      const {latitude:lat, longitude:lng}=pos.coords
-      try{
-        // Use OpenStreetMap Nominatim — free, no API key needed
-        const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{
-          headers:{'Accept-Language':'en-US,en','User-Agent':'CTLogs-FieldApp'}
-        })
-        const data=await res.json()
-        const a=data.address||{}
-
-        // Build address string matching "Street, City ST" format
-        const street=[a.house_number, a.road].filter(Boolean).join(' ')
-        const city=a.city||a.town||a.village||a.hamlet||a.county||''
-        const state=a.state_code||a.state||''
-        // Abbreviate state if we got full name
-        const stateAbbr=state.length>2 ? stateAbbreviations[state]||state : state.toUpperCase()
-        const parts=[street,city,stateAbbr].filter(Boolean)
-        const address=parts.join(', ')
-
-        document.getElementById('lAddress').value=address
-        toast('Address filled from GPS.')
-      }catch(e){
-        // Fallback: just fill with coordinates if reverse geocode fails
-        document.getElementById('lAddress').value=`${lat.toFixed(5)}, ${lng.toFixed(5)}`
-        toast('GPS located — reverse geocode failed, coordinates entered.','err')
-      }
-      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
-    },
-    err=>{
-      const msgs={1:'Location permission denied.',2:'Location unavailable.',3:'Location request timed out.'}
-      toast(msgs[err.code]||'GPS error.','err')
-      btn.disabled=false; btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg> GPS`
-    },
-    {enableHighAccuracy:true, timeout:10000}
-  )
-}
-
-// US state name → abbreviation lookup
-const stateAbbreviations={
-  'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA',
-  'Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA',
-  'Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA',
-  'Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD',
-  'Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO',
-  'Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ',
-  'New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH',
-  'Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC',
-  'South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT',
-  'Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY',
-  // Australian states for good measure since you're AU-based
-  'New South Wales':'NSW','Victoria':'VIC','Queensland':'QLD','South Australia':'SA',
-  'Western Australia':'WA','Tasmania':'TAS','Northern Territory':'NT','Australian Capital Territory':'ACT'
-}
-
-// LOCATION MODAL
+// ── LOCATION MODAL ────────────────────────────────────────────────────────────
 window.openNewLocation=function(){
+  if(currentProfile?.role==='guest') return
   editLocId=null; locImgs=[]; fvImgs=[]
   document.getElementById('lTitle').value=''
   document.getElementById('lSiteId').value=''
@@ -829,10 +929,10 @@ window.openNewLocation=function(){
   populateTemplateSelect()
   document.getElementById('locOverlay').classList.add('open')
 }
-window.closeLocModal=function(){
-  document.getElementById('locOverlay').classList.remove('open')
-}
+window.closeLocModal=function(){ document.getElementById('locOverlay').classList.remove('open') }
+
 window.editCurLoc=function(){
+  if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
   editLocId=loc.id; locImgs=[...(loc.images||[])]; fvImgs=[]
   document.getElementById('lTitle').value=loc.title||''
@@ -847,55 +947,33 @@ window.editCurLoc=function(){
   document.getElementById('detOverlay').classList.remove('open')
   document.getElementById('locOverlay').classList.add('open')
 }
+
 window.saveLoc=async function(){
+  if(currentProfile?.role==='guest') return
   const title=document.getElementById('lTitle').value.trim()
   const addr=document.getElementById('lAddress').value.trim()
   if(!title&&!addr){toast('Enter a title or address.','err');return}
   const btn=document.getElementById('saveLocBtn')
   btn.disabled=true; btn.textContent='Saving…'
   const tags=document.getElementById('lTags').value.split(',').map(t=>t.trim()).filter(Boolean)
-
-  // First visit (new locations only)
   let visits=[]
-  if(!editLocId && document.getElementById('firstVisitCheck').checked){
+  if(!editLocId&&document.getElementById('firstVisitCheck').checked){
     const fvNotes=document.getElementById('fvNotes').value.trim()
-    if(fvNotes){
-      visits=[{
-        id: crypto.randomUUID(),
-        date: document.getElementById('fvDate').value,
-        tech: document.getElementById('fvTech').value.trim(),
-        notes: fvNotes,
-        images: [...fvImgs],
-      }]
-    }
+    if(fvNotes) visits=[{id:crypto.randomUUID(),date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:[...fvImgs]}]
   }
-
-  const payload={
-    title: title||addr,
-    site_id: document.getElementById('lSiteId').value.trim()||null,
-    address: addr||null,
-    description: document.getElementById('lDesc').value.trim()||null,
-    tags,
-    images: locImgs,
-    updated_at: new Date().toISOString(),
-  }
-  if(editLocId){
-    payload.id=editLocId
-  } else {
-    payload.visits=visits
-  }
-
+  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,updated_at:new Date().toISOString()}
+  if(editLocId) payload.id=editLocId
+  else payload.visits=visits
   try{
     await upsertLoc(payload)
     locations=await fetchAll()
-    closeLocModal()
-    renderCards()
+    closeLocModal(); renderCards()
     toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
-  }catch(e){ toast('Save failed: '+e.message,'err') }
+  }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Location'
 }
 
-// DETAIL MODAL
+// ── DETAIL MODAL ──────────────────────────────────────────────────────────────
 window.openDetail=function(id){
   curLocId=id
   document.getElementById('delLocBar').classList.remove('show')
@@ -908,107 +986,86 @@ window.closeDetailModal=function(){
 }
 function renderDetail(){
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
+  const role=currentProfile?.role
+  const canWrite=role==='admin'||role==='crew'
+  const isAdmin=role==='admin'
+
   document.getElementById('dTitle').textContent=loc.title||loc.address||'Untitled'
   document.getElementById('dAddr').textContent=loc.address||'—'
   document.getElementById('dDesc').textContent=loc.description||'No description provided.'
 
+  // Show/hide action buttons based on role
+  document.getElementById('deleteLocBtn').style.display=isAdmin?'':'none'
+  document.getElementById('editLocBtn').style.display=canWrite?'':'none'
+  document.getElementById('logVisitWrap').style.display=canWrite?'':'none'
+
   const imgEl=document.getElementById('dImages')
   const imgs=loc.images||[]
   imgEl.innerHTML=imgs.length
-    ? imgs.map(img=>`
-        <div>
-          <div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')">
-            <img src="${img.dataUrl}" alt="${esc(img.name)}" />
-          </div>
-          <div class="det-img-cap">${esc(img.name)}</div>
-        </div>`).join('')
-    : '<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
+    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.name)}" /></div><div class="det-img-cap">${esc(img.name)}</div></div>`).join('')
+    :'<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
 
   const vEl=document.getElementById('visitList')
-  // Sort newest first (descending by date)
-  const visits=[...(loc.visits||[])].sort((a,b)=>{
-    if(a.date>b.date) return -1
-    if(a.date<b.date) return 1
-    return 0
-  })
+  const visits=[...(loc.visits||[])].sort((a,b)=>a.date>b.date?-1:a.date<b.date?1:0)
   vEl.innerHTML=visits.length
-    ? visits.map(v=>`
+    ?visits.map(v=>`
         <div class="vitem" id="vi-${v.id}" onclick="openVDetail('${v.id}')">
           <div class="vitem-left">
             <div class="vdate">${fmtDate(v.date)}</div>
-            <div class="vcrew">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              ${esc(v.tech||'Cody & Sal')}
-            </div>
+            <div class="vcrew"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${esc(v.tech||'Cody & Sal')}</div>
           </div>
-          <div class="vitem-right" onclick="event.stopPropagation()">
+          ${canWrite?`<div class="vitem-right" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-sm" onclick="editVisit('${v.id}')">✏ Edit</button>
             <button class="btn btn-danger btn-sm" onclick="showDelVisit('${v.id}')">Delete</button>
-          </div>
+          </div>`:''}
         </div>
         <div class="confirm-bar" id="cv-${v.id}">
-          Delete this visit entry?
+          Delete this visit?
           <button class="btn btn-danger btn-sm" onclick="deleteVisit('${v.id}')">Yes</button>
           <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cv-${v.id}').classList.remove('show')">No</button>
         </div>`).join('')
-    : '<div style="color:var(--text-faint);font-size:13px;padding:10px 0">No visits recorded yet.</div>'
+    :'<div style="color:var(--text-faint);font-size:13px;padding:10px 0">No visits recorded yet.</div>'
 }
 window.confirmDeleteLoc=function(){ document.getElementById('delLocBar').classList.add('show') }
 window.deleteLoc=async function(){
+  if(currentProfile?.role!=='admin') return
   try{
     await deleteLoc_db(curLocId)
     locations=locations.filter(l=>l.id!==curLocId)
     closeDetailModal(); renderCards(); toast('Location deleted.')
-  }catch(e){ toast('Delete failed: '+e.message,'err') }
+  }catch(e){toast('Delete failed: '+e.message,'err')}
 }
 
-// VISIT DETAIL POPUP
-let curVDetailId = null
+// ── VISIT DETAIL POPUP ────────────────────────────────────────────────────────
 window.openVDetail=function(vid){
   const loc=locations.find(l=>l.id===curLocId)
   const v=loc&&(loc.visits||[]).find(x=>x.id===vid); if(!v) return
   curVDetailId=vid
+  const role=currentProfile?.role
+  const canWrite=role==='admin'||role==='crew'
   document.getElementById('vdDate').textContent=fmtDate(v.date)
   document.getElementById('vdCrew').textContent=v.tech||'Cody & Sal'
   document.getElementById('vdNotes').textContent=v.notes||'No notes.'
   document.getElementById('vdConfirmBar').classList.remove('show')
-  // images
+  document.getElementById('vdDeleteBtn').style.display=canWrite?'':'none'
+  document.getElementById('vdEditBtn').style.display=canWrite?'':'none'
   const imgs=v.images||[]
   const imgTitle=document.getElementById('vdImgTitle')
   const imgEl=document.getElementById('vdImages')
   if(imgs.length){
     imgTitle.style.display=''
-    imgEl.innerHTML=imgs.map(img=>`
-      <div>
-        <div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')">
-          <img src="${img.dataUrl}" alt="${esc(img.name)}" />
-        </div>
-        <div class="det-img-cap">${esc(img.name)}</div>
-      </div>`).join('')
-  } else {
-    imgTitle.style.display='none'
-    imgEl.innerHTML=''
-  }
+    imgEl.innerHTML=imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.name)}" /></div><div class="det-img-cap">${esc(img.name)}</div></div>`).join('')
+  }else{imgTitle.style.display='none';imgEl.innerHTML=''}
   document.getElementById('vdetailOverlay').classList.add('open')
 }
-window.closeVDetail=function(){
-  document.getElementById('vdetailOverlay').classList.remove('open')
-  curVDetailId=null
-}
-window.editVisitFromDetail=function(){
-  closeVDetail()
-  editVisit(curVDetailId)
-}
-window.confirmDelVisitFromDetail=function(){
-  document.getElementById('vdConfirmBar').classList.add('show')
-}
-window.deleteVisitFromDetail=async function(){
-  await deleteVisit(curVDetailId)
-  closeVDetail()
-}
+window.closeVDetail=function(){ document.getElementById('vdetailOverlay').classList.remove('open'); curVDetailId=null }
+window.editVisitFromDetail=function(){ closeVDetail(); editVisit(curVDetailId) }
+window.confirmDelVisitFromDetail=function(){ document.getElementById('vdConfirmBar').classList.add('show') }
+window.deleteVisitFromDetail=async function(){ await deleteVisit(curVDetailId); closeVDetail() }
 
-// VISIT MODAL
+// ── VISIT MODAL ───────────────────────────────────────────────────────────────
 window.openNewVisit=function(){
+  if(currentProfile?.role==='guest') return
   editVisitId=null; visitImgs=[]
   document.getElementById('vDate').value=today()
   document.getElementById('vTech').value='Cody & Sal'
@@ -1017,21 +1074,21 @@ window.openNewVisit=function(){
   document.getElementById('visitModalTitle').textContent='Log Visit'
   document.getElementById('visitOverlay').classList.add('open')
 }
-window.closeVisitModal=function(){
-  document.getElementById('visitOverlay').classList.remove('open')
-}
+window.closeVisitModal=function(){ document.getElementById('visitOverlay').classList.remove('open') }
 window.editVisit=function(vid){
+  if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId)
   const v=loc&&(loc.visits||[]).find(x=>x.id===vid); if(!v) return
   editVisitId=vid; visitImgs=[...(v.images||[])]
   document.getElementById('vDate').value=v.date||today()
-  document.getElementById('vTech').value=v.tech||''
+  document.getElementById('vTech').value=v.tech||'Cody & Sal'
   document.getElementById('vNotes').value=v.notes||''
   renderPrev('visit','vImgPreview')
   document.getElementById('visitModalTitle').textContent='Edit Visit'
   document.getElementById('visitOverlay').classList.add('open')
 }
 window.saveVisit=async function(){
+  if(currentProfile?.role==='guest') return
   const notes=document.getElementById('vNotes').value.trim()
   if(!notes){toast('Add notes before saving.','err');return}
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
@@ -1046,50 +1103,75 @@ window.saveVisit=async function(){
   }
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
-    loc.visits=visits
-    closeVisitModal(); renderDetail(); renderCards()
+    loc.visits=visits; closeVisitModal(); renderDetail(); renderCards()
     toast(editVisitId?'Visit updated.':'Visit logged.')
-  }catch(e){ toast('Save failed: '+e.message,'err') }
+  }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Visit'
 }
 window.showDelVisit=function(vid){ document.getElementById(`cv-${vid}`).classList.add('show') }
 window.deleteVisit=async function(vid){
+  if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
   const visits=(loc.visits||[]).filter(v=>v.id!==vid)
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
     loc.visits=visits; renderDetail(); renderCards(); toast('Visit deleted.')
-  }catch(e){ toast('Delete failed: '+e.message,'err') }
+  }catch(e){toast('Delete failed: '+e.message,'err')}
 }
 
-// LIGHTBOX
+// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
+window.openAdminPanel=async function(){
+  if(currentProfile?.role!=='admin') return
+  document.getElementById('adminOverlay').classList.add('open')
+  document.getElementById('userList').innerHTML='<div class="loader" style="padding:40px 20px"><div class="spinner"></div></div>'
+  const {data:profiles,error}=await sb.from('profiles').select('*').order('created_at')
+  if(error){document.getElementById('userList').innerHTML='<p style="padding:20px;color:var(--red)">Failed to load users.</p>';return}
+  document.getElementById('userList').innerHTML=profiles.map(p=>`
+    <div class="user-row">
+      <div>
+        <div class="user-email">${esc(p.email)}</div>
+        <div style="margin-top:3px"><span class="role-badge role-${p.role}">${esc(p.role)}</span></div>
+      </div>
+      <select class="user-role-select" onchange="updateUserRole('${p.id}',this.value)" ${p.id===currentUser.id?'disabled title="Cannot change your own role"':''}>
+        <option value="pending" ${p.role==='pending'?'selected':''}>Pending</option>
+        <option value="guest"   ${p.role==='guest'  ?'selected':''}>Guest</option>
+        <option value="crew"    ${p.role==='crew'   ?'selected':''}>Crew</option>
+        <option value="admin"   ${p.role==='admin'  ?'selected':''}>Admin</option>
+      </select>
+    </div>`).join('')
+}
+window.closeAdminPanel=function(){ document.getElementById('adminOverlay').classList.remove('open') }
+window.updateUserRole=async function(userId,role){
+  const {error}=await sb.from('profiles').update({role}).eq('id',userId)
+  if(error){toast('Failed to update role.','err');return}
+  toast('Role updated.')
+  // Refresh list
+  openAdminPanel()
+}
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────────
 window.openLB=function(enc){ document.getElementById('lbImg').src=decodeURIComponent(enc); document.getElementById('lightbox').classList.add('open') }
 window.closeLB=function(){ document.getElementById('lightbox').classList.remove('open') }
 
-// COLLAPSE STATE — persisted across re-renders
-const collapsedStates = new Set()
-
+// ── COLLAPSE ──────────────────────────────────────────────────────────────────
 window.toggleAllGroups=function(){
   const groups=document.querySelectorAll('.state-group')
   const btn=document.getElementById('collapseAllBtn')
   const anyExpanded=[...groups].some(g=>!g.classList.contains('collapsed'))
   groups.forEach(g=>{
     const state=g.dataset.state
-    if(anyExpanded){ g.classList.add('collapsed'); collapsedStates.add(state) }
-    else { g.classList.remove('collapsed'); collapsedStates.delete(state) }
+    if(anyExpanded){g.classList.add('collapsed');collapsedStates.add(state)}
+    else{g.classList.remove('collapsed');collapsedStates.delete(state)}
   })
   btn.textContent=anyExpanded?'Expand All':'Collapse All'
 }
-
 window.toggleGroup=function(state){
   const group=document.querySelector(`.state-group[data-state="${state}"]`)
   if(!group) return
   const isCollapsed=group.classList.toggle('collapsed')
-  if(isCollapsed) collapsedStates.add(state)
-  else collapsedStates.delete(state)
+  if(isCollapsed) collapsedStates.add(state); else collapsedStates.delete(state)
   updateCollapseBtn()
 }
-
 function updateCollapseBtn(){
   const groups=document.querySelectorAll('.state-group')
   const btn=document.getElementById('collapseAllBtn')
@@ -1098,36 +1180,23 @@ function updateCollapseBtn(){
   btn.textContent=anyExpanded?'Collapse All':'Expand All'
 }
 
-// RENDER — grouped by state
+// ── RENDER CARDS ──────────────────────────────────────────────────────────────
 function renderCards(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim()
   const filtered=locations.filter(l=>{
     if(!q) return true
     return [l.title,l.address,l.description,l.site_id,...(l.tags||[])].join(' ').toLowerCase().includes(q)
   })
-
   const content=document.getElementById('mainContent')
-
   if(!filtered.length){
     content.innerHTML=`<div class="empty"><div class="eico">⬡</div><h3>${locations.length===0?'No locations yet':'No results'}</h3><p>${locations.length===0?'Add your first cooling tower site to get started.':'Try a different search term.'}</p></div>`
-  } else {
-    // Group by extracted state abbreviation
+  }else{
     const groups={}
-    filtered.forEach(loc=>{
-      const state=extractState(loc.address)
-      if(!groups[state]) groups[state]=[]
-      groups[state].push(loc)
-    })
-
-    // Alphabetical, Unknown/Other last
+    filtered.forEach(loc=>{const state=extractState(loc.address);if(!groups[state])groups[state]=[];groups[state].push(loc)})
     const sortedStates=Object.keys(groups).sort((a,b)=>{
-      const aLast=a==='Other'||a==='Unknown'
-      const bLast=b==='Other'||b==='Unknown'
-      if(aLast&&!bLast) return 1
-      if(!aLast&&bLast) return -1
-      return a.localeCompare(b)
+      const aL=a==='Other'||a==='Unknown', bL=b==='Other'||b==='Unknown'
+      if(aL&&!bL) return 1; if(!aL&&bL) return -1; return a.localeCompare(b)
     })
-
     content.innerHTML=sortedStates.map(state=>{
       const locs=groups[state]
       const isCollapsed=collapsedStates.has(state)
@@ -1142,15 +1211,11 @@ function renderCards(){
             ${loc.site_id?`<div class="card-siteid"># ${esc(loc.site_id)}</div>`:''}
             ${loc.address?`<div class="card-address"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(loc.address)}</div>`:''}
             ${loc.description?`<div class="card-desc">${esc(loc.description)}</div>`:''}
-            <div class="card-foot">
-              <div class="card-tags">${tags}</div>
-              <div class="visit-badge"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div>
-            </div>
+            <div class="card-foot"><div class="card-tags">${tags}</div><div class="visit-badge"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div></div>
           </div>
           ${thumbs?`<div class="card-thumbs">${thumbs}</div>`:''}
         </div>`
       }).join('')
-
       return `<div class="state-group${isCollapsed?' collapsed':''}" data-state="${esc(state)}">
         <div class="state-header" onclick="toggleGroup('${esc(state)}')">
           <div class="state-label">${esc(state)}</div>
@@ -1158,15 +1223,11 @@ function renderCards(){
           <div class="state-count">${locs.length} site${locs.length!==1?'s':''}</div>
           <div class="state-chevron">▼</div>
         </div>
-        <div class="state-body">
-          <div class="cards-grid">${cardsHtml}</div>
-        </div>
+        <div class="state-body"><div class="cards-grid">${cardsHtml}</div></div>
       </div>`
     }).join('')
-
     updateCollapseBtn()
   }
-
   const totalVisits=locations.reduce((s,l)=>s+(l.visits||[]).length,0)
   const stateCount=new Set(locations.map(l=>extractState(l.address))).size
   document.getElementById('statsRow').innerHTML=`
@@ -1177,20 +1238,34 @@ function renderCards(){
   `
 }
 
-// KEYBOARD + OVERLAY CLICK
+// ── KEYBOARD + OVERLAY CLICK ──────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeLB(); closeVDetail(); closeVisitModal(); closeLocModal(); closeDetailModal() }
+  if(e.key==='Escape'){closeLB();closeVDetail();closeVisitModal();closeLocModal();closeDetailModal();closeAdminPanel()}
 })
-;['locOverlay','detOverlay','visitOverlay','vdetailOverlay'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open') })
+;['locOverlay','detOverlay','visitOverlay','vdetailOverlay','adminOverlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')})
 })
-document.getElementById('lightbox').addEventListener('click',function(e){ if(e.target===this) closeLB() })
-document.getElementById('searchInput').addEventListener('input', ()=>renderCards())
+document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB()})
+document.getElementById('searchInput').addEventListener('input',()=>renderCards())
 
-// INIT
+// ── AUTH STATE LISTENER + INIT ────────────────────────────────────────────────
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_IN'&&session?.user){
+    // Don't re-enter if already in app
+    if(document.getElementById('appScreen').classList.contains('visible')) return
+    await loadProfileAndEnter(session.user)
+  }else if(event==='SIGNED_OUT'){
+    document.getElementById('appScreen').classList.remove('visible')
+    document.getElementById('authScreen').classList.remove('hidden')
+  }
+})
+
+// Check existing session on load
 ;(async()=>{
-  locations=await fetchAll()
-  renderCards()
+  const {data:{session}}=await sb.auth.getSession()
+  if(session?.user){
+    await loadProfileAndEnter(session.user)
+  }
 })()
 </script>
 </body>
