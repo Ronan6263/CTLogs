@@ -671,19 +671,18 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-const sb = createClient(
-  'https://njlhmdlnsqqczyafgwqg.supabase.co',
-  'sb_publishable_gz1MYDdmUvA0_QezdDZLgg_tgiLO2iv',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      storageKey: 'ctlogs_auth',
-      storage: window.localStorage,
-      detectSessionInUrl: true,
-    }
+const SUPA_URL='https://njlhmdlnsqqczyafgwqg.supabase.co'
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qbGhtZGxuc3FxY3p5YWZnd3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTc2OTEsImV4cCI6MjA4OTkzMzY5MX0.e7scPpjl07J_PNiUbNk3YKleoVXSO8mli72YG5hJtGI'
+
+const sb = createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storageKey: 'ctlogs_auth',
+    storage: window.localStorage,
+    detectSessionInUrl: true,
   }
-)
+})
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let locations   = []
