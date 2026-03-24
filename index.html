@@ -295,23 +295,62 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
 .det-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
 
 /* VISITS */
-.visit-list{display:flex;flex-direction:column;gap:10px}
-.vitem{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:border-color 0.15s}
+.visit-list{display:flex;flex-direction:column;gap:6px}
+.vitem{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:9px 14px;transition:border-color 0.15s;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  cursor:pointer;
+}
 .vitem:hover{border-color:var(--teal-dim)}
-.vitem-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.vdate{font-family:var(--mono);font-size:13px;color:var(--teal)}
-.vtech{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px}
-.vnotes{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap}
-.vactions{display:flex;gap:6px;margin-top:10px}
-.vimages{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.vimages img{width:76px;height:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s}
-.vimages img:hover{transform:scale(1.05)}
+.vitem-left{display:flex;align-items:center;gap:16px;min-width:0}
+.vdate{font-family:var(--mono);font-size:13px;color:var(--teal);white-space:nowrap;flex-shrink:0}
+.vcrew{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.vitem-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .confirm-bar{
   display:none;background:var(--red-glow);border:1px solid var(--red);
-  border-radius:var(--radius);padding:10px 14px;margin-top:8px;
+  border-radius:var(--radius);padding:10px 14px;margin-top:6px;
   font-size:13px;align-items:center;gap:10px;flex-wrap:wrap;
 }
 .confirm-bar.show{display:flex}
+
+/* VISIT DETAIL POPUP */
+.vdetail-overlay{
+  display:none;position:fixed;inset:0;z-index:400;
+  background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);
+  overflow-y:auto;padding:36px 18px;
+}
+.vdetail-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.vdetail-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);width:100%;max-width:640px;
+  animation:slideUp 0.2s ease;
+}
+.vdetail-head{
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.vdetail-title{font-family:var(--cond);font-size:19px;font-weight:700;color:#eef1f8;display:flex;align-items:center;gap:10px}
+.vdetail-body{padding:22px 24px}
+.vdetail-meta{display:flex;align-items:center;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+.vdetail-date{font-family:var(--mono);font-size:14px;color:var(--teal)}
+.vdetail-crew{font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+.vdetail-notes{
+  font-size:14px;color:var(--text);line-height:1.75;white-space:pre-wrap;
+  padding:14px;background:var(--panel);border-radius:var(--radius);
+  border-left:3px solid var(--teal);margin-bottom:18px;
+}
+.vdetail-images{display:flex;gap:10px;flex-wrap:wrap}
+.vdetail-foot{
+  padding:14px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+}
+.vconfirm-bar{
+  display:none;background:var(--red-glow);border:1px solid var(--red);
+  border-radius:var(--radius);padding:10px 16px;margin:0 24px 16px;
+  font-size:13px;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.vconfirm-bar.show{display:flex}
 
 /* LIGHTBOX */
 .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.94);align-items:center;justify-content:center;cursor:zoom-out}
@@ -445,8 +484,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
               <input type="date" id="fvDate" />
             </div>
             <div class="fg">
-              <label>Technician</label>
-              <input type="text" id="fvTech" placeholder="Your name or team" />
+              <label>Crew</label>
+              <input type="text" id="fvTech" placeholder="Cody &amp; Sal" />
             </div>
           </div>
           <div class="fg">
@@ -530,8 +569,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
           <input type="date" id="vDate" />
         </div>
         <div class="fg">
-          <label>Technician</label>
-          <input type="text" id="vTech" placeholder="Your name or team" />
+          <label>Crew</label>
+          <input type="text" id="vTech" placeholder="Cody &amp; Sal" />
         </div>
       </div>
       <div class="fg">
@@ -551,6 +590,40 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeVisitModal()">Cancel</button>
       <button class="btn btn-teal" id="saveVisitBtn" onclick="saveVisit()">Save Visit</button>
+    </div>
+  </div>
+</div>
+
+<!-- VISIT DETAIL POPUP -->
+<div class="vdetail-overlay" id="vdetailOverlay">
+  <div class="vdetail-modal">
+    <div class="vdetail-head">
+      <div class="vdetail-title"><span style="color:var(--teal)">◎</span> Visit Details</div>
+      <button class="mclose" onclick="closeVDetail()">✕</button>
+    </div>
+    <div class="vdetail-body">
+      <div class="vdetail-meta">
+        <div class="vdetail-date" id="vdDate"></div>
+        <div class="vdetail-crew">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span id="vdCrew"></span>
+        </div>
+      </div>
+      <div class="vdetail-notes" id="vdNotes"></div>
+      <div class="sec-title" id="vdImgTitle" style="display:none">Photos</div>
+      <div class="vdetail-images" id="vdImages"></div>
+    </div>
+    <div class="vdetail-foot">
+      <button class="btn btn-danger btn-sm" onclick="confirmDelVisitFromDetail()">Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeVDetail()">Close</button>
+        <button class="btn btn-ghost btn-sm" onclick="editVisitFromDetail()">✏ Edit</button>
+      </div>
+    </div>
+    <div class="vconfirm-bar" id="vdConfirmBar">
+      Delete this visit entry permanently?
+      <button class="btn btn-danger btn-sm" onclick="deleteVisitFromDetail()">Yes, Delete</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('vdConfirmBar').classList.remove('show')">Cancel</button>
     </div>
   </div>
 </div>
@@ -745,7 +818,7 @@ window.openNewLocation=function(){
   document.getElementById('lTags').value=''
   document.getElementById('lImgPreview').innerHTML=''
   document.getElementById('fvDate').value=today()
-  document.getElementById('fvTech').value=''
+  document.getElementById('fvTech').value='Cody & Sal'
   document.getElementById('fvNotes').value=''
   document.getElementById('fvImgPreview').innerHTML=''
   document.getElementById('firstVisitCheck').checked=false
@@ -852,28 +925,31 @@ function renderDetail(){
     : '<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
 
   const vEl=document.getElementById('visitList')
-  const visits=[...(loc.visits||[])].reverse()
+  // Sort newest first (descending by date)
+  const visits=[...(loc.visits||[])].sort((a,b)=>{
+    if(a.date>b.date) return -1
+    if(a.date<b.date) return 1
+    return 0
+  })
   vEl.innerHTML=visits.length
     ? visits.map(v=>`
-        <div class="vitem" id="vi-${v.id}">
-          <div class="vitem-head">
+        <div class="vitem" id="vi-${v.id}" onclick="openVDetail('${v.id}')">
+          <div class="vitem-left">
             <div class="vdate">${fmtDate(v.date)}</div>
-            <div class="vtech">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              ${esc(v.tech||'Unknown')}
+            <div class="vcrew">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${esc(v.tech||'Cody & Sal')}
             </div>
           </div>
-          <div class="vnotes">${esc(v.notes||'No notes.')}</div>
-          ${(v.images&&v.images.length)?`<div class="vimages">${v.images.map(i=>`<img src="${i.dataUrl}" alt="${esc(i.name)}" onclick="openLB('${encodeURIComponent(i.dataUrl)}')" />`).join('')}</div>`:''}
-          <div class="vactions">
+          <div class="vitem-right" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-sm" onclick="editVisit('${v.id}')">✏ Edit</button>
             <button class="btn btn-danger btn-sm" onclick="showDelVisit('${v.id}')">Delete</button>
           </div>
-          <div class="confirm-bar" id="cv-${v.id}">
-            Delete this visit entry?
-            <button class="btn btn-danger btn-sm" onclick="deleteVisit('${v.id}')">Yes</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cv-${v.id}').classList.remove('show')">No</button>
-          </div>
+        </div>
+        <div class="confirm-bar" id="cv-${v.id}">
+          Delete this visit entry?
+          <button class="btn btn-danger btn-sm" onclick="deleteVisit('${v.id}')">Yes</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cv-${v.id}').classList.remove('show')">No</button>
         </div>`).join('')
     : '<div style="color:var(--text-faint);font-size:13px;padding:10px 0">No visits recorded yet.</div>'
 }
@@ -886,11 +962,56 @@ window.deleteLoc=async function(){
   }catch(e){ toast('Delete failed: '+e.message,'err') }
 }
 
+// VISIT DETAIL POPUP
+let curVDetailId = null
+window.openVDetail=function(vid){
+  const loc=locations.find(l=>l.id===curLocId)
+  const v=loc&&(loc.visits||[]).find(x=>x.id===vid); if(!v) return
+  curVDetailId=vid
+  document.getElementById('vdDate').textContent=fmtDate(v.date)
+  document.getElementById('vdCrew').textContent=v.tech||'Cody & Sal'
+  document.getElementById('vdNotes').textContent=v.notes||'No notes.'
+  document.getElementById('vdConfirmBar').classList.remove('show')
+  // images
+  const imgs=v.images||[]
+  const imgTitle=document.getElementById('vdImgTitle')
+  const imgEl=document.getElementById('vdImages')
+  if(imgs.length){
+    imgTitle.style.display=''
+    imgEl.innerHTML=imgs.map(img=>`
+      <div>
+        <div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')">
+          <img src="${img.dataUrl}" alt="${esc(img.name)}" />
+        </div>
+        <div class="det-img-cap">${esc(img.name)}</div>
+      </div>`).join('')
+  } else {
+    imgTitle.style.display='none'
+    imgEl.innerHTML=''
+  }
+  document.getElementById('vdetailOverlay').classList.add('open')
+}
+window.closeVDetail=function(){
+  document.getElementById('vdetailOverlay').classList.remove('open')
+  curVDetailId=null
+}
+window.editVisitFromDetail=function(){
+  closeVDetail()
+  editVisit(curVDetailId)
+}
+window.confirmDelVisitFromDetail=function(){
+  document.getElementById('vdConfirmBar').classList.add('show')
+}
+window.deleteVisitFromDetail=async function(){
+  await deleteVisit(curVDetailId)
+  closeVDetail()
+}
+
 // VISIT MODAL
 window.openNewVisit=function(){
   editVisitId=null; visitImgs=[]
   document.getElementById('vDate').value=today()
-  document.getElementById('vTech').value=''
+  document.getElementById('vTech').value='Cody & Sal'
   document.getElementById('vNotes').value=''
   document.getElementById('vImgPreview').innerHTML=''
   document.getElementById('visitModalTitle').textContent='Log Visit'
@@ -1058,9 +1179,9 @@ function renderCards(){
 
 // KEYBOARD + OVERLAY CLICK
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeLB(); closeVisitModal(); closeLocModal(); closeDetailModal() }
+  if(e.key==='Escape'){ closeLB(); closeVDetail(); closeVisitModal(); closeLocModal(); closeDetailModal() }
 })
-;['locOverlay','detOverlay','visitOverlay'].forEach(id=>{
+;['locOverlay','detOverlay','visitOverlay','vdetailOverlay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open') })
 })
 document.getElementById('lightbox').addEventListener('click',function(e){ if(e.target===this) closeLB() })
