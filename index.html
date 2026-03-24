@@ -839,20 +839,23 @@ window.doLogout=async function(){
 }
 
 async function loadProfileAndEnter(user){
+  console.log('loadProfileAndEnter called for', user.email)
   currentUser=user
 
-  // Retry up to 4 times with a short delay — session propagation can lag slightly
   let profile=null
   let lastError=null
   for(let attempt=0; attempt<4; attempt++){
     if(attempt>0) await new Promise(r=>setTimeout(r,700))
+    console.log('Profile fetch attempt', attempt+1)
     const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle()
+    console.log('Attempt', attempt+1, 'result:', data, 'error:', error)
     if(data){ profile=data; break }
     lastError=error
   }
 
+  console.log('Final profile:', profile, 'lastError:', lastError)
+
   if(!profile){
-    // If it's an RLS/permission error show it clearly
     if(lastError && lastError.code!=='PGRST116'){
       const btn=document.getElementById('loginBtn')
       if(btn){ btn.disabled=false; btn.textContent='Sign In' }
@@ -861,12 +864,14 @@ async function loadProfileAndEnter(user){
       await sb.auth.signOut()
       return
     }
-    // No profile row — create it
+    console.log('No profile found, creating one...')
     await sb.from('profiles').upsert({id:user.id, email:user.email, role:'pending'})
     currentProfile={id:user.id,email:user.email,role:'pending'}
   } else {
     currentProfile=profile
   }
+
+  console.log('currentProfile:', currentProfile)
 
   if(currentProfile.role==='pending'){
     document.getElementById('loginForm').classList.add('hidden')
@@ -877,6 +882,7 @@ async function loadProfileAndEnter(user){
     return
   }
 
+  console.log('Calling enterApp()')
   enterApp()
 }
 
