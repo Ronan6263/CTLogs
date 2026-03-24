@@ -32,7 +32,22 @@
 
 ---
 
-## Step 3 — Share with your supervisor
+## Step 3 — Set up email dispatch (2 min)
+
+1. Go to https://resend.com and create a free account
+2. In the Resend dashboard, go to **API Keys** and create a new key
+3. In Vercel, go to your project **Settings > Environment Variables**
+4. Add: `RESEND_API_KEY` = (paste the key from step 2)
+5. Redeploy the project (Vercel > Deployments > most recent > … > Redeploy)
+
+Free Resend tier allows 100 emails/day and sends from `onboarding@resend.dev`.
+To send from your own domain (e.g. `dispatch@yourdomain.com`), add and verify your
+domain in the Resend dashboard under **Domains**, then set a `RESEND_FROM` environment
+variable in Vercel (e.g. `CT Logs <dispatch@yourdomain.com>`).
+
+---
+
+## Step 4 — Share with your supervisor
 
 Just send them the Vercel URL. Works on any device, any browser — no app install needed.
 

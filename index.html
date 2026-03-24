@@ -230,6 +230,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .offline-banner strong{font-family:var(--mono);letter-spacing:0.05em}
 .offline-queue{font-size:12px;color:var(--amber-dim)}
 
+.dispatch-spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:dspin .6s linear infinite;vertical-align:middle}
+@keyframes dspin{to{transform:rotate(360deg)}}
+
 /* ── DISPATCH ── */
 .dispatch-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(8,9,12,0.88);backdrop-filter:blur(8px);overflow-y:auto;padding:36px 18px}
 .dispatch-overlay.open{display:flex;align-items:flex-start;justify-content:center}
@@ -884,7 +887,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <button class="btn btn-ghost" onclick="closeDispatch()">Cancel</button>
       <button class="btn btn-primary" onclick="sendDispatch()">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
-        Open in Gmail
+        Send Dispatch
       </button>
     </div>
   </div>
@@ -2112,9 +2115,121 @@ function updateDispatchPreview(){
   document.getElementById('dispatchPreview').textContent=body||'Fill in the details above to preview the email…'
 }
 
-window.sendDispatch=function(){
+function buildDispatchHtml(stops, msg){
+  const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th']
+  const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
+  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+
+  let stopsHtml=''
+  stops.forEach((stop,idx)=>{
+    const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
+    const addr=loc?loc.address:stop.customAddress
+    const contacts=loc?(loc.contacts||[]):[]
+
+    // Stop header
+    stopsHtml+=`<tr><td style="padding:0 0 24px 0">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#191c23;border:1px solid #272b36;border-radius:8px;padding:20px 24px">
+
+      <!-- Ordinal -->
+      <table cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Courier New',monospace;font-size:11px;color:#e8a020;letter-spacing:0.12em;text-transform:uppercase;background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.25);border-radius:3px;padding:3px 10px">${ordinals[idx]||idx+1+'.'} STOP</td>
+      </tr></table>
+
+      <!-- Address -->
+      ${addr?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:#eef1f8;margin-top:12px">${e(addr)}</div>`:''}`
+
+    // Contacts
+    if(contacts.length){
+      stopsHtml+=`<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px">`
+      contacts.forEach(c=>{
+        const phone=c.phone?`<a href="tel:${e(c.phone)}" style="color:#4fd1c5;text-decoration:none;font-family:'Courier New',monospace;font-size:13px">${e(c.phone)}</a>`:''
+        const email=c.email?`<a href="mailto:${e(c.email)}" style="color:#4fd1c5;text-decoration:none;font-size:13px">${e(c.email)}</a>`:''
+        stopsHtml+=`<tr><td style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc">
+          <strong>${e(c.name)}</strong>${c.role?` <span style="color:#6e7585;font-size:12px">(${e(c.role)})</span>`:''}
+          ${phone?'&nbsp;&mdash; '+phone:''}${email?'&nbsp;&mdash; '+email:''}
+        </td></tr>`
+      })
+      stopsHtml+=`</table>`
+    } else if(stop.contactName){
+      const phone=stop.contactPhone?`<a href="tel:${e(stop.contactPhone)}" style="color:#4fd1c5;text-decoration:none;font-family:'Courier New',monospace;font-size:13px">${e(stop.contactPhone)}</a>`:''
+      stopsHtml+=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc;margin-top:14px">
+        <strong>${e(stop.contactName)}</strong>${phone?'&nbsp;&mdash; '+phone:''}
+      </div>`
+    }
+
+    // Warning for unmapped locations
+    if(!stop.locId){
+      stopsHtml+=`<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px"><tr>
+        <td style="width:4px;background:#e8a020;border-radius:2px"></td>
+        <td style="padding:10px 14px;background:rgba(232,160,32,0.06);border:1px solid rgba(232,160,32,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8a020">
+          <strong>NEW LOCATION</strong> &mdash; No field card on file. Please complete a site report on arrival.
+        </td>
+      </tr></table>`
+    }
+
+    // Equipment
+    if(loc?.equipment && Object.keys(loc.equipment).length){
+      const items=Object.entries(loc.equipment).map(([k,v])=>{
+        const label=labels[k]||k
+        const val=typeof v==='number'?`${v}${k.includes('Hose')?'ft':''}`:''
+        return `<span style="display:inline-block;background:#272b36;border:1px solid #363b48;border-radius:4px;padding:3px 10px;margin:3px 4px 3px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#c8cedc">${e(label)}${val?' <strong>'+val+'</strong>':''}</span>`
+      }).join('')
+      stopsHtml+=`<div style="margin-top:14px">
+        <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">EQUIPMENT</div>
+        ${items}
+      </div>`
+    }
+
+    // Notes
+    if(loc?.description){
+      stopsHtml+=`<div style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6e7585;line-height:1.5">${e(loc.description)}</div>`
+    }
+
+    stopsHtml+=`</td></tr></table></td></tr>`
+  })
+
+  // Dispatcher message
+  let msgHtml=''
+  if(msg){
+    msgHtml=`<tr><td style="padding:0 0 24px 0">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="width:4px;background:#4fd1c5;border-radius:2px"></td>
+        <td style="padding:14px 18px;background:rgba(79,209,197,0.05);border:1px solid rgba(79,209,197,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc;font-style:italic;line-height:1.6">${e(msg)}</td>
+      </tr></table>
+    </td></tr>`
+  }
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Job Dispatch</title></head>
+<body style="margin:0;padding:0;background:#0c0d10;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0c0d10"><tr><td align="center" style="padding:32px 16px">
+  <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+    <!-- Header -->
+    <tr><td style="padding:0 0 24px 0">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:20px 24px;border-bottom:2px solid #272b36">
+        <span style="font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#e8a020;letter-spacing:0.15em">CT&nbsp;LOGS</span>
+        <span style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6e7585;margin-left:12px">Job Dispatch</span>
+      </td></tr></table>
+    </td></tr>
+
+    <!-- Stops -->
+    ${stopsHtml}
+
+    <!-- Message -->
+    ${msgHtml}
+
+    <!-- Footer -->
+    <tr><td style="padding:16px 0 0 0;border-top:1px solid #272b36;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#4a4f5c">
+      Dispatched via CT Logs
+    </td></tr>
+
+  </table>
+</td></tr></table>
+</body></html>`
+}
+
+window.sendDispatch=async function(){
   const msg=document.getElementById('dispatchMsg').value.trim()
-  const ordinals=['1st','2nd','3rd','4th','5th','6th']
 
   // Get selected crew emails
   const checked=[...document.querySelectorAll('#crewCheckList input:checked')]
@@ -2129,46 +2244,31 @@ window.sendDispatch=function(){
     : dispatchStops[0]?.customAddress
   const subject=`Job Dispatch — ${firstAddr||'New Job'}${dispatchStops.length>1?' + '+(dispatchStops.length-1)+' more':''}`
 
-  // Build body
-  let body=''
-  dispatchStops.forEach((stop,idx)=>{
-    const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
-    const addr=loc?loc.address:stop.customAddress
-    const contacts=loc?(loc.contacts||[]):[]
+  // Build HTML email
+  const html=buildDispatchHtml(dispatchStops, msg)
 
-    body+=`${ordinals[idx]||idx+1+'. '} Stop\n`
-    if(addr) body+=`${addr}\n`
-    if(contacts.length){
-      contacts.forEach(c=>{
-        body+=`${c.name}${c.role?' ('+c.role+')':''}${c.phone?' — '+c.phone:''}${c.email?' — '+c.email:''}\n`
-      })
-    } else if(stop.contactName){
-      body+=`${stop.contactName}${stop.contactPhone?' — '+stop.contactPhone:''}\n`
-    }
-    if(!stop.locId) body+=`No field card on file — please complete a site report on arrival.\n`
+  // Loading state
+  const sendBtn=document.querySelector('#dispatchOverlay .modal-foot .btn-primary')
+  const originalHtml=sendBtn.innerHTML
+  sendBtn.disabled=true
+  sendBtn.innerHTML='<span class="dispatch-spinner"></span> Sending\u2026'
 
-    // Equipment
-    if(loc?.equipment && Object.keys(loc.equipment).length){
-      const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
-      const equip=Object.entries(loc.equipment).map(([k,v])=>{
-        const label=labels[k]||k
-        return typeof v==='number'?`${label}: ${v}${k.includes('Hose')?'ft':''}`:label
-      }).join(', ')
-      body+=`Equipment: ${equip}\n`
-    }
-
-    // Notes
-    if(loc?.description) body+=`Notes: ${loc.description}\n`
-    body+='\n'
-  })
-
-  if(msg) body+=msg+'\n\n'
-  body+='— Dispatched via CT Logs'
-
-  // Open Gmail compose
-  const gmailUrl=`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(recipients.join(','))}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  window.open(gmailUrl,'_blank')
-  toast('Gmail compose opened.')
+  try{
+    const resp=await fetch('/api/dispatch',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to:recipients, subject, html})
+    })
+    const result=await resp.json()
+    if(!resp.ok) throw new Error(result.error||'Send failed')
+    toast('Dispatch sent!')
+    closeDispatch()
+  }catch(err){
+    toast('Failed to send: '+err.message,'err')
+  }finally{
+    sendBtn.disabled=false
+    sendBtn.innerHTML=originalHtml
+  }
 }
 
 // ── KEYBOARD + OVERLAY CLICK ──────────────────────────────────────────────────
