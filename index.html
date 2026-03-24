@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>CoolLog — Field Service Database</title>
+<title>CT Logs — Field Service Database</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -91,10 +91,10 @@ body::before{
 /* SEARCH */
 .search-row{display:flex;gap:12px;margin-bottom:24px;align-items:center}
 .search-wrap{flex:1;position:relative}
-.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;z-index:1}
 .search-input{
   width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-  padding:11px 14px 11px 40px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;
+  padding:11px 14px 11px 42px;color:var(--text);font-family:var(--body);font-size:14px;outline:none;
   transition:border-color 0.2s,box-shadow 0.2s;
 }
 .search-input::placeholder{color:var(--text-faint)}
@@ -110,14 +110,25 @@ body::before{
 
 /* STATE GROUPS */
 .state-group{margin-bottom:38px}
-.state-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.state-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;user-select:none}
+.state-header:hover .state-label{background:var(--amber);color:#0c0d10}
 .state-label{
   font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;
   color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);
-  border-radius:4px;padding:4px 12px;white-space:nowrap;
+  border-radius:4px;padding:4px 12px;white-space:nowrap;transition:background 0.15s,color 0.15s;
 }
 .state-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
 .state-count{font-family:var(--mono);font-size:11px;color:var(--text-faint);white-space:nowrap}
+.state-chevron{
+  font-size:11px;color:var(--text-dim);transition:transform 0.2s;
+  display:flex;align-items:center;flex-shrink:0;
+}
+.state-group.collapsed .state-chevron{transform:rotate(-90deg)}
+.state-body{
+  overflow:hidden;
+  transition:opacity 0.2s;
+}
+.state-group.collapsed .state-body{display:none}
 
 /* CARDS */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
@@ -329,7 +340,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   <div class="logo" onclick="closeDetailModal()">
     <div class="logo-hex">⬡</div>
     <div>
-      <div class="logo-text">COOLLOG</div>
+      <div class="logo-text">CT LOGS</div>
       <div class="logo-sub">Field Service Database</div>
     </div>
   </div>
@@ -345,8 +356,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   <div class="search-row">
     <div class="search-wrap">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" oninput="renderCards()" />
+      <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" />
     </div>
+    <button class="btn btn-ghost btn-sm" id="collapseAllBtn" onclick="toggleAllGroups()" style="white-space:nowrap">Collapse All</button>
   </div>
   <div class="stats-row" id="statsRow"></div>
   <div id="mainContent">
@@ -855,6 +867,38 @@ window.deleteVisit=async function(vid){
 window.openLB=function(enc){ document.getElementById('lbImg').src=decodeURIComponent(enc); document.getElementById('lightbox').classList.add('open') }
 window.closeLB=function(){ document.getElementById('lightbox').classList.remove('open') }
 
+// COLLAPSE STATE — persisted across re-renders
+const collapsedStates = new Set()
+
+window.toggleAllGroups=function(){
+  const groups=document.querySelectorAll('.state-group')
+  const btn=document.getElementById('collapseAllBtn')
+  const anyExpanded=[...groups].some(g=>!g.classList.contains('collapsed'))
+  groups.forEach(g=>{
+    const state=g.dataset.state
+    if(anyExpanded){ g.classList.add('collapsed'); collapsedStates.add(state) }
+    else { g.classList.remove('collapsed'); collapsedStates.delete(state) }
+  })
+  btn.textContent=anyExpanded?'Expand All':'Collapse All'
+}
+
+window.toggleGroup=function(state){
+  const group=document.querySelector(`.state-group[data-state="${state}"]`)
+  if(!group) return
+  const isCollapsed=group.classList.toggle('collapsed')
+  if(isCollapsed) collapsedStates.add(state)
+  else collapsedStates.delete(state)
+  updateCollapseBtn()
+}
+
+function updateCollapseBtn(){
+  const groups=document.querySelectorAll('.state-group')
+  const btn=document.getElementById('collapseAllBtn')
+  if(!btn||!groups.length) return
+  const anyExpanded=[...groups].some(g=>!g.classList.contains('collapsed'))
+  btn.textContent=anyExpanded?'Collapse All':'Expand All'
+}
+
 // RENDER — grouped by state
 function renderCards(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim()
@@ -887,6 +931,7 @@ function renderCards(){
 
     content.innerHTML=sortedStates.map(state=>{
       const locs=groups[state]
+      const isCollapsed=collapsedStates.has(state)
       const cardsHtml=locs.map(loc=>{
         const visits=loc.visits||[]
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
@@ -907,15 +952,20 @@ function renderCards(){
         </div>`
       }).join('')
 
-      return `<div class="state-group">
-        <div class="state-header">
+      return `<div class="state-group${isCollapsed?' collapsed':''}" data-state="${esc(state)}">
+        <div class="state-header" onclick="toggleGroup('${esc(state)}')">
           <div class="state-label">${esc(state)}</div>
           <div class="state-line"></div>
           <div class="state-count">${locs.length} site${locs.length!==1?'s':''}</div>
+          <div class="state-chevron">▼</div>
         </div>
-        <div class="cards-grid">${cardsHtml}</div>
+        <div class="state-body">
+          <div class="cards-grid">${cardsHtml}</div>
+        </div>
       </div>`
     }).join('')
+
+    updateCollapseBtn()
   }
 
   const totalVisits=locations.reduce((s,l)=>s+(l.visits||[]).length,0)
@@ -936,6 +986,7 @@ document.addEventListener('keydown',e=>{
   document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open') })
 })
 document.getElementById('lightbox').addEventListener('click',function(e){ if(e.target===this) closeLB() })
+document.getElementById('searchInput').addEventListener('input', ()=>renderCards())
 
 // INIT
 ;(async()=>{
