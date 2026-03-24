@@ -138,6 +138,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .tag-t{border-color:var(--teal-dim);color:var(--teal);background:var(--teal-glow)}
 .visit-badge{font-family:var(--mono);font-size:12px;color:var(--text-dim);white-space:nowrap}
 .visit-badge span{color:var(--amber)}
+.visit-badge.never span{color:var(--red)}
+.last-visit{font-family:var(--mono);font-size:10px;color:var(--text-faint);white-space:nowrap;margin-top:3px}
+.hide-mobile{display:inline}
 .card-thumbs{display:flex;gap:6px;padding:0 20px 14px;overflow-x:auto}
 .card-thumb{width:64px;height:52px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0}
 
@@ -203,7 +206,47 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .prev-item{position:relative;width:80px}
 .prev-item img{width:80px;height:66px;object-fit:cover;border-radius:4px;border:1px solid var(--border);display:block}
 .prev-item .rm{position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:var(--red);border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
-.prev-lbl{font-family:var(--mono);font-size:10px;color:var(--text-faint);text-align:center;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prev-caption{
+  width:80px;margin-top:4px;
+  background:var(--panel);border:1px solid var(--border);border-radius:3px;
+  padding:3px 5px;color:var(--text);font-family:var(--body);font-size:10px;
+  outline:none;text-align:center;
+  transition:border-color 0.15s;
+}
+.prev-caption::placeholder{color:var(--text-faint)}
+.prev-caption:focus{border-color:var(--amber-dim)}
+
+/* ── EQUIPMENT ── */
+.equip-grid{display:flex;flex-direction:column;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.equip-item{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.equip-label{font-size:13px;color:var(--text);flex:1}
+.equip-stepper{display:flex;align-items:center;gap:10px}
+.equip-btn{width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:border-color 0.15s,background 0.15s;flex-shrink:0}
+.equip-btn:hover{border-color:var(--amber-dim);background:var(--amber-glow);color:var(--amber)}
+.equip-val{font-family:var(--mono);font-size:14px;color:var(--amber);min-width:36px;text-align:center}
+.equip-toggles{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px;border-top:1px solid var(--border);margin-top:4px}
+.equip-toggle{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-dim);cursor:pointer;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;transition:border-color 0.15s,color 0.15s}
+.equip-toggle:has(input:checked){border-color:var(--teal-dim);color:var(--teal);background:var(--teal-glow)}
+.equip-toggle input{accent-color:var(--teal);width:14px;height:14px;cursor:pointer}
+
+/* ── EQUIPMENT DISPLAY (detail view) ── */
+.equip-display{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.equip-chip{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text-dim)}
+.equip-chip.active{border-color:var(--teal-dim);color:var(--teal);background:var(--teal-glow)}
+.unsaved-overlay{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(8,9,12,0.92);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+.unsaved-overlay.open{display:flex}
+.unsaved-card{
+  background:var(--surface);border:1px solid var(--red);border-radius:var(--radius-lg);
+  padding:32px 28px;max-width:380px;width:90%;text-align:center;
+  animation:slideUp 0.2s ease;
+}
+.unsaved-card h3{font-family:var(--cond);font-size:20px;font-weight:700;color:#eef1f8;margin-bottom:10px}
+.unsaved-card p{font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:24px}
+.unsaved-btns{display:flex;gap:10px;justify-content:center}
 
 /* ── DETAIL ── */
 .det-hero{padding:24px 24px 0}
@@ -354,6 +397,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   /* CONFIRM BAR */
   .confirm-bar{padding:10px 12px}
   #delLocBar{margin:0 16px 14px}
+  .hide-mobile{display:none}
 
   /* TOAST — full width at bottom */
   .toast{left:12px;right:12px;bottom:16px;max-width:none}
@@ -385,12 +429,27 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <div class="auth-label">Password</div>
         <input class="auth-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
       </div>
-      <label class="auth-check-row">
-        <input type="checkbox" id="stayLoggedIn" checked />
-        Stay logged in
-      </label>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <label class="auth-check-row">
+          <input type="checkbox" id="stayLoggedIn" checked />
+          Stay logged in
+        </label>
+        <span style="font-size:12px;color:var(--amber-dim);cursor:pointer;text-decoration:underline" onclick="switchTab('reset')">Forgot password?</span>
+      </div>
       <div class="auth-msg" id="loginMsg"></div>
       <button class="auth-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    </div>
+
+    <!-- RESET PASSWORD -->
+    <div class="auth-form hidden" id="resetForm">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.6">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="auth-field">
+        <div class="auth-label">Email</div>
+        <input class="auth-input" id="resetEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-msg" id="resetMsg"></div>
+      <button class="auth-btn" id="resetBtn" onclick="doResetPassword()">Send Reset Link</button>
+      <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:10px;cursor:pointer" onclick="switchTab('login')">← Back to sign in</p>
     </div>
 
     <!-- REGISTER -->
@@ -440,6 +499,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       </div>
       <span class="role-badge" id="topbarRoleBadge"></span>
       <button class="btn btn-ghost btn-sm" id="adminPanelBtn" onclick="openAdminPanel()" style="display:none">Admin</button>
+      <button class="btn btn-ghost btn-sm" onclick="refreshData()" title="Refresh">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span class="hide-mobile">Refresh</span>
+      </button>
       <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button>
       <button class="btn btn-primary" id="newLocBtn" onclick="openNewLocation()">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
@@ -502,6 +565,51 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
         <label>Tags <span style="text-transform:none;font-weight:400;letter-spacing:0;font-family:var(--body)">(comma separated)</span></label>
         <input type="text" id="lTags" placeholder="rooftop, restricted access, chemical dosing" />
       </div>
+
+      <!-- EQUIPMENT -->
+      <div class="fg">
+        <label>Equipment Needed</label>
+        <div class="equip-grid">
+          <div class="equip-item">
+            <div class="equip-label">Gas washers</div>
+            <div class="equip-stepper">
+              <button type="button" class="equip-btn" onclick="stepEquip('gasWashers',-1)">−</button>
+              <span class="equip-val" id="eq-gasWashers">0</span>
+              <button type="button" class="equip-btn" onclick="stepEquip('gasWashers',1)">+</button>
+            </div>
+          </div>
+          <div class="equip-item">
+            <div class="equip-label">Garden hose (ft)</div>
+            <div class="equip-stepper">
+              <button type="button" class="equip-btn" onclick="stepEquip('gardenHose',-50)">−</button>
+              <span class="equip-val" id="eq-gardenHose">0</span>
+              <button type="button" class="equip-btn" onclick="stepEquip('gardenHose',50)">+</button>
+            </div>
+          </div>
+          <div class="equip-item">
+            <div class="equip-label">Pressure hose (ft)</div>
+            <div class="equip-stepper">
+              <button type="button" class="equip-btn" onclick="stepEquip('pressureHose',-50)">−</button>
+              <span class="equip-val" id="eq-pressureHose">0</span>
+              <button type="button" class="equip-btn" onclick="stepEquip('pressureHose',50)">+</button>
+            </div>
+          </div>
+          <div class="equip-item">
+            <div class="equip-label">Contractor bags</div>
+            <div class="equip-stepper">
+              <button type="button" class="equip-btn" onclick="stepEquip('contractorBags',-1)">−</button>
+              <span class="equip-val" id="eq-contractorBags">0</span>
+              <button type="button" class="equip-btn" onclick="stepEquip('contractorBags',1)">+</button>
+            </div>
+          </div>
+          <div class="equip-toggles">
+            <label class="equip-toggle"><input type="checkbox" id="eq-vacuum" /><span>Vacuum</span></label>
+            <label class="equip-toggle"><input type="checkbox" id="eq-electricWasher" /><span>Electric washer</span></label>
+            <label class="equip-toggle"><input type="checkbox" id="eq-squeegee" /><span>Squeegee</span></label>
+            <label class="equip-toggle"><input type="checkbox" id="eq-orangePump" /><span>Orange pump</span></label>
+          </div>
+        </div>
+      </div>
       <div class="fg">
         <label>Site Images</label>
         <div class="upload-zone">
@@ -553,6 +661,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
       <div class="det-title" id="dTitle"></div>
       <div class="det-addr"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="dAddr"></span></div>
       <div class="det-desc" id="dDesc"></div>
+      <div class="sec-title">Equipment Needed</div>
+      <div class="equip-display" id="dEquip"></div>
       <div class="sec-title">Site Images</div>
       <div class="det-images" id="dImages"></div>
     </div>
@@ -656,6 +766,18 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeAdminPanel()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- UNSAVED CHANGES CONFIRM -->
+<div class="unsaved-overlay" id="unsavedOverlay">
+  <div class="unsaved-card">
+    <h3>Unsaved Changes</h3>
+    <p>You have unsaved changes. If you close now they'll be lost.</p>
+    <div class="unsaved-btns">
+      <button class="btn btn-ghost" onclick="cancelUnsaved()">Keep Editing</button>
+      <button class="btn btn-danger" onclick="confirmUnsaved()">Discard Changes</button>
     </div>
   </div>
 </div>
@@ -769,8 +891,9 @@ function extractState(address){
 window.switchTab=function(tab){
   document.getElementById('loginForm').classList.toggle('hidden',tab!=='login')
   document.getElementById('registerForm').classList.toggle('hidden',tab!=='register')
+  document.getElementById('resetForm').classList.toggle('hidden',tab!=='reset')
   document.getElementById('pendingForm').classList.add('hidden')
-  document.getElementById('tabLogin').classList.toggle('active',tab==='login')
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login'||tab==='reset')
   document.getElementById('tabRegister').classList.toggle('active',tab==='register')
 }
 
@@ -830,6 +953,18 @@ window.doRegister=async function(){
   btn.disabled=false; btn.textContent='Create Account'
 }
 
+window.doResetPassword=async function(){
+  const email=document.getElementById('resetEmail').value.trim()
+  const msg=document.getElementById('resetMsg')
+  const btn=document.getElementById('resetBtn')
+  if(!email){showMsg(msg,'Enter your email address.','err');return}
+  btn.disabled=true; btn.textContent='Sending…'
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://ct-logs.vercel.app'})
+  if(error){showMsg(msg,error.message,'err')}
+  else{showMsg(msg,'Reset link sent — check your email.','ok')}
+  btn.disabled=false; btn.textContent='Send Reset Link'
+}
+
 window.doLogout=async function(){
   await sb.auth.signOut()
   currentUser=null; currentProfile=null
@@ -839,13 +974,10 @@ window.doLogout=async function(){
 }
 
 async function loadProfileAndEnter(user){
-  // Prevent double-firing
   if(currentUser && currentUser.id===user.id) return
-  console.log('loadProfileAndEnter called for', user.email)
   currentUser=user
 
-  // Get token directly from localStorage — bypass sb.auth.getSession() which can hang
-  let token=SUPA_KEY // fallback to anon key
+  let token=SUPA_KEY
   try{
     const stored=localStorage.getItem('ctlogs_auth')
     if(stored){
@@ -853,54 +985,33 @@ async function loadProfileAndEnter(user){
       const t=parsed?.access_token||parsed?.session?.access_token
       if(t) token=t
     }
-  }catch(e){ console.log('Token parse error:', e.message) }
-  console.log('Using token type:', token===SUPA_KEY?'anon key':'user token')
+  }catch(e){}
 
   let profile=null
-
   for(let attempt=0; attempt<3; attempt++){
     if(attempt>0) await new Promise(r=>setTimeout(r,800))
-    console.log('Profile fetch attempt', attempt+1)
     try{
       const res=await fetch(
         `${SUPA_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=*&limit=1`,
-        { headers:{
-          'apikey': SUPA_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        }}
+        {headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Accept':'application/json'}}
       )
       const json=await res.json()
-      console.log('Status:', res.status, 'Response:', JSON.stringify(json))
       if(res.ok && Array.isArray(json) && json.length>0){ profile=json[0]; break }
-    }catch(e){
-      console.log('Fetch error:', e.message)
-    }
+    }catch(e){}
   }
 
-  console.log('Final profile:', profile)
-
   if(!profile){
-    // Create pending profile
-    console.log('Creating profile...')
     try{
       await fetch(`${SUPA_URL}/rest/v1/profiles`,{
         method:'POST',
-        headers:{
-          'apikey':SUPA_KEY,
-          'Authorization':`Bearer ${token}`,
-          'Content-Type':'application/json',
-          'Prefer':'resolution=merge-duplicates',
-        },
+        headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
         body:JSON.stringify({id:user.id,email:user.email,role:'pending'})
       })
-    }catch(e){ console.log('Create profile error:', e.message) }
+    }catch(e){}
     currentProfile={id:user.id,email:user.email,role:'pending'}
   } else {
     currentProfile=profile
   }
-
-  console.log('Role:', currentProfile.role)
 
   if(currentProfile.role==='pending'){
     document.getElementById('authScreen').style.display='flex'
@@ -912,7 +1023,6 @@ async function loadProfileAndEnter(user){
     return
   }
 
-  console.log('Calling enterApp()')
   enterApp()
 }
 
@@ -980,7 +1090,7 @@ function stageImgs(target,input){
   const prevId=target==='loc'?'lImgPreview':target==='fv'?'fvImgPreview':'vImgPreview'
   Array.from(input.files).forEach(f=>{
     const r=new FileReader()
-    r.onload=e=>{arr.push({name:f.name,dataUrl:e.target.result});renderPrev(target,prevId)}
+    r.onload=e=>{arr.push({name:f.name,dataUrl:e.target.result,caption:''});renderPrev(target,prevId)}
     r.readAsDataURL(f)
   })
   input.value=''
@@ -992,8 +1102,12 @@ function renderPrev(target,prevId){
     <div class="prev-item">
       <img src="${img.dataUrl}" alt="${esc(img.name)}" />
       <button class="rm" onclick="rmImg('${target}',${i})">✕</button>
-      <div class="prev-lbl">${esc(img.name)}</div>
+      <input class="prev-caption" placeholder="Label…" value="${esc(img.caption||'')}" oninput="updateCaption('${target}',${i},this.value)" />
     </div>`).join('')
+}
+window.updateCaption=function(target,i,val){
+  const arr=target==='loc'?locImgs:target==='fv'?fvImgs:visitImgs
+  if(arr[i]) arr[i].caption=val
 }
 window.rmImg=function(target,i){
   if(target==='loc'){locImgs.splice(i,1);renderPrev('loc','lImgPreview')}
@@ -1035,7 +1149,81 @@ window.gpsAutofill=async function(){
 }
 const stateAbbreviations={'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY','New South Wales':'NSW','Victoria':'VIC','Queensland':'QLD','South Australia':'SA','Western Australia':'WA','Tasmania':'TAS','Northern Territory':'NT','Australian Capital Territory':'ACT'}
 
-// ── TEMPLATE ──────────────────────────────────────────────────────────────────
+// ── EQUIPMENT ─────────────────────────────────────────────────────────────────
+const equipCounters={gasWashers:0,gardenHose:0,pressureHose:0,contractorBags:0}
+const equipToggles=['vacuum','electricWasher','squeegee','orangePump']
+
+window.stepEquip=function(key,delta){
+  const min=key==='gardenHose'||key==='pressureHose'?0:0
+  equipCounters[key]=Math.max(min,equipCounters[key]+delta)
+  document.getElementById('eq-'+key).textContent=equipCounters[key]
+  markDirty()
+}
+
+function resetEquip(){
+  Object.keys(equipCounters).forEach(k=>{equipCounters[k]=0;const el=document.getElementById('eq-'+k);if(el)el.textContent='0'})
+  equipToggles.forEach(k=>{const el=document.getElementById('eq-'+k);if(el)el.checked=false})
+}
+
+function getEquipData(){
+  const d={}
+  Object.keys(equipCounters).forEach(k=>{if(equipCounters[k]>0)d[k]=equipCounters[k]})
+  equipToggles.forEach(k=>{const el=document.getElementById('eq-'+k);if(el&&el.checked)d[k]=true})
+  return d
+}
+
+function setEquipData(data){
+  resetEquip()
+  if(!data) return
+  Object.keys(equipCounters).forEach(k=>{
+    if(data[k]){equipCounters[k]=data[k];const el=document.getElementById('eq-'+k);if(el)el.textContent=data[k]}
+  })
+  equipToggles.forEach(k=>{
+    if(data[k]){const el=document.getElementById('eq-'+k);if(el)el.checked=true}
+  })
+}
+
+function renderEquipDisplay(data){
+  if(!data||!Object.keys(data).length) return '<span style="color:var(--text-faint);font-size:13px">None specified.</span>'
+  const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
+  return Object.entries(data).map(([k,v])=>{
+    const label=labels[k]||k
+    const display=typeof v==='number'?`${label}: ${v}${k.includes('Hose')?'ft':''}`:label
+    return `<span class="equip-chip active">${esc(display)}</span>`
+  }).join('')
+}
+
+// ── UNSAVED CHANGES ───────────────────────────────────────────────────────────
+let unsavedPendingAction=null
+let formDirty=false
+
+function markDirty(){ formDirty=true }
+function markClean(){ formDirty=false }
+
+function guardClose(closeFn){
+  if(!formDirty){ closeFn(); return }
+  unsavedPendingAction=closeFn
+  document.getElementById('unsavedOverlay').classList.add('open')
+}
+window.cancelUnsaved=function(){
+  unsavedPendingAction=null
+  document.getElementById('unsavedOverlay').classList.remove('open')
+}
+window.confirmUnsaved=function(){
+  document.getElementById('unsavedOverlay').classList.remove('open')
+  if(unsavedPendingAction){ unsavedPendingAction(); unsavedPendingAction=null }
+  markClean()
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────────────
+window.refreshData=async function(){
+  const btn=document.querySelector('[onclick="refreshData()"]')
+  if(btn){ btn.disabled=true }
+  locations=await fetchAll()
+  renderCards()
+  toast('Data refreshed.')
+  if(btn){ btn.disabled=false }
+}
 function populateTemplateSelect(){
   const sel=document.getElementById('templateSelect')
   sel.innerHTML='<option value="">— Start blank —</option>'
@@ -1060,7 +1248,7 @@ window.toggleFirstVisit=function(fromCheckbox){
 // ── LOCATION MODAL ────────────────────────────────────────────────────────────
 window.openNewLocation=function(){
   if(currentProfile?.role==='guest') return
-  editLocId=null; locImgs=[]; fvImgs=[]
+  editLocId=null; locImgs=[]; fvImgs=[]; markClean(); resetEquip()
   document.getElementById('lTitle').value=''
   document.getElementById('lSiteId').value=''
   document.getElementById('lAddress').value=''
@@ -1077,19 +1265,29 @@ window.openNewLocation=function(){
   document.getElementById('templateBar').style.display=''
   document.getElementById('locModalTitle').textContent='New Location'
   populateTemplateSelect()
+  // Mark dirty on any input change
+  setTimeout(()=>{
+    document.querySelectorAll('#locOverlay input,#locOverlay textarea').forEach(el=>{
+      el.addEventListener('input',markDirty,{once:false})
+    })
+  },100)
   document.getElementById('locOverlay').classList.add('open')
 }
-window.closeLocModal=function(){ document.getElementById('locOverlay').classList.remove('open') }
+window.closeLocModal=function(force){
+  if(force){ markClean(); document.getElementById('locOverlay').classList.remove('open'); return }
+  guardClose(()=>{ markClean(); document.getElementById('locOverlay').classList.remove('open') })
+}
 
 window.editCurLoc=function(){
   if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
-  editLocId=loc.id; locImgs=[...(loc.images||[])]; fvImgs=[]
+  editLocId=loc.id; locImgs=[...(loc.images||[])]; fvImgs=[]; markClean()
   document.getElementById('lTitle').value=loc.title||''
   document.getElementById('lSiteId').value=loc.site_id||''
   document.getElementById('lAddress').value=loc.address||''
   document.getElementById('lDesc').value=loc.description||''
   document.getElementById('lTags').value=(loc.tags||[]).join(', ')
+  setEquipData(loc.equipment||{})
   renderPrev('loc','lImgPreview')
   document.getElementById('firstVisitToggleWrap').style.display='none'
   document.getElementById('templateBar').style.display='none'
@@ -1111,13 +1309,13 @@ window.saveLoc=async function(){
     const fvNotes=document.getElementById('fvNotes').value.trim()
     if(fvNotes) visits=[{id:crypto.randomUUID(),date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:[...fvImgs]}]
   }
-  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,updated_at:new Date().toISOString()}
+  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,equipment:getEquipData(),updated_at:new Date().toISOString()}
   if(editLocId) payload.id=editLocId
   else payload.visits=visits
   try{
     await upsertLoc(payload)
     locations=await fetchAll()
-    closeLocModal(); renderCards()
+    closeLocModal(true); renderCards()
     toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Location'
@@ -1144,6 +1342,10 @@ function renderDetail(){
   document.getElementById('dAddr').textContent=loc.address||'—'
   document.getElementById('dDesc').textContent=loc.description||'No description provided.'
 
+  // Equipment
+  const equipEl=document.getElementById('dEquip')
+  if(equipEl) equipEl.innerHTML=renderEquipDisplay(loc.equipment||{})
+
   // Show/hide action buttons based on role
   document.getElementById('deleteLocBtn').style.display=isAdmin?'':'none'
   document.getElementById('editLocBtn').style.display=canWrite?'':'none'
@@ -1152,7 +1354,7 @@ function renderDetail(){
   const imgEl=document.getElementById('dImages')
   const imgs=loc.images||[]
   imgEl.innerHTML=imgs.length
-    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.name)}" /></div><div class="det-img-cap">${esc(img.name)}</div></div>`).join('')
+    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
     :'<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
 
   const vEl=document.getElementById('visitList')
@@ -1204,7 +1406,7 @@ window.openVDetail=function(vid){
   const imgEl=document.getElementById('vdImages')
   if(imgs.length){
     imgTitle.style.display=''
-    imgEl.innerHTML=imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.name)}" /></div><div class="det-img-cap">${esc(img.name)}</div></div>`).join('')
+    imgEl.innerHTML=imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
   }else{imgTitle.style.display='none';imgEl.innerHTML=''}
   document.getElementById('vdetailOverlay').classList.add('open')
 }
@@ -1216,15 +1418,23 @@ window.deleteVisitFromDetail=async function(){ await deleteVisit(curVDetailId); 
 // ── VISIT MODAL ───────────────────────────────────────────────────────────────
 window.openNewVisit=function(){
   if(currentProfile?.role==='guest') return
-  editVisitId=null; visitImgs=[]
+  editVisitId=null; visitImgs=[]; markClean()
   document.getElementById('vDate').value=today()
   document.getElementById('vTech').value='Cody & Sal'
   document.getElementById('vNotes').value=''
   document.getElementById('vImgPreview').innerHTML=''
   document.getElementById('visitModalTitle').textContent='Log Visit'
+  setTimeout(()=>{
+    document.querySelectorAll('#visitOverlay input,#visitOverlay textarea').forEach(el=>{
+      el.addEventListener('input',markDirty)
+    })
+  },100)
   document.getElementById('visitOverlay').classList.add('open')
 }
-window.closeVisitModal=function(){ document.getElementById('visitOverlay').classList.remove('open') }
+window.closeVisitModal=function(force){
+  if(force){ markClean(); document.getElementById('visitOverlay').classList.remove('open'); return }
+  guardClose(()=>{ markClean(); document.getElementById('visitOverlay').classList.remove('open') })
+}
 window.editVisit=function(vid){
   if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId)
@@ -1253,7 +1463,7 @@ window.saveVisit=async function(){
   }
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
-    loc.visits=visits; closeVisitModal(); renderDetail(); renderCards()
+    loc.visits=visits; closeVisitModal(true); renderDetail(); renderCards()
     toast(editVisitId?'Visit updated.':'Visit logged.')
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Visit'
@@ -1352,6 +1562,10 @@ function renderCards(){
       const isCollapsed=collapsedStates.has(state)
       const cardsHtml=locs.map(loc=>{
         const visits=loc.visits||[]
+        const lastVisit=visits.length
+          ? [...visits].sort((a,b)=>a.date>b.date?-1:1)[0].date
+          : null
+        const neverVisited=visits.length===0
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
         const thumbs=(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${i.dataUrl}" alt="" />`).join('')
         return `<div class="card" onclick="openDetail('${loc.id}')">
@@ -1361,7 +1575,13 @@ function renderCards(){
             ${loc.site_id?`<div class="card-siteid"># ${esc(loc.site_id)}</div>`:''}
             ${loc.address?`<div class="card-address"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(loc.address)}</div>`:''}
             ${loc.description?`<div class="card-desc">${esc(loc.description)}</div>`:''}
-            <div class="card-foot"><div class="card-tags">${tags}</div><div class="visit-badge"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div></div>
+            <div class="card-foot">
+              <div class="card-tags">${tags}</div>
+              <div style="text-align:right">
+                <div class="visit-badge ${neverVisited?'never':''}"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div>
+                ${lastVisit?`<div class="last-visit">Last: ${fmtDate(lastVisit)}</div>`:`<div class="last-visit" style="color:var(--red)">Never visited</div>`}
+              </div>
+            </div>
           </div>
           ${thumbs?`<div class="card-thumbs">${thumbs}</div>`:''}
         </div>`
@@ -1393,14 +1613,18 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeLB();closeVDetail();closeVisitModal();closeLocModal();closeDetailModal();closeAdminPanel()}
 })
 ;['locOverlay','detOverlay','visitOverlay','vdetailOverlay','adminOverlay'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')})
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this){
+      if(id==='locOverlay'||id==='visitOverlay') guardClose(()=>{ markClean(); this.classList.remove('open') })
+      else this.classList.remove('open')
+    }
+  })
 })
 document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB()})
 document.getElementById('searchInput').addEventListener('input',()=>renderCards())
 
 // ── AUTH STATE LISTENER + INIT ────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async(event,session)=>{
-  console.log('Auth state:', event, session?.user?.email||'none')
   if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session?.user){
     if(document.getElementById('appScreen').classList.contains('visible')) return
     await loadProfileAndEnter(session.user)
