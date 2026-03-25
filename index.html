@@ -1323,7 +1323,8 @@ async function getSignedImgUrl(storagePath,expiry=3600){
   const cached=_signedUrlCache.get(storagePath)
   if(cached&&cached.expires>Date.now()) return cached.url
   const{data,error}=await sb.storage.from(IMG_BUCKET).createSignedUrl(storagePath,expiry)
-  if(error||!data?.signedUrl) return ''
+  if(error){console.warn('Signed URL error for',storagePath,error); return ''}
+  if(!data?.signedUrl){console.warn('No signedUrl in response for',storagePath,data); return ''}
   _signedUrlCache.set(storagePath,{url:data.signedUrl,expires:Date.now()+(expiry-60)*1000})
   return data.signedUrl
 }
@@ -2161,7 +2162,7 @@ function renderStops(){
   updateDispatchPreview()
 }
 
-function updateDispatchPreview(){
+window.updateDispatchPreview=function(){
   const msg=document.getElementById('dispatchMsg').value.trim()
   const ordinals=['1st','2nd','3rd','4th','5th','6th']
   let body=''
