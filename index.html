@@ -2196,7 +2196,7 @@ async function buildDispatchHtml(stops, msg){
   const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th']
   const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
   const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-  const logoUrl=SUPA_URL+'/storage/v1/object/public/Images/T_CTFieldLogsLogo.png'
+  const logoUrl=SUPA_URL+'/storage/v1/object/public/Images/logo.png'
 
   let stopsHtml=''
   for(let idx=0;idx<stops.length;idx++){
