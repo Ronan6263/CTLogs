@@ -1254,7 +1254,7 @@ async function flushOfflineQueue(){
     }
   }
   if(failed===0){
-    locations=await fetchAll(); renderCards()
+    locations=await fetchAll(); await resolveAllImageUrls(); renderCards()
     toast('All changes synced.')
   } else {
     toast(`${failed} change${failed!==1?'s':''} failed to sync.`,'err')
@@ -1291,8 +1291,65 @@ async function deleteLoc_db(id){
 async function loadAndRender(){
   document.getElementById('mainContent').innerHTML='<div class="loader"><div class="spinner"></div>Loading…</div>'
   locations=await fetchAll()
+  await resolveAllImageUrls()
   renderCards()
 }
+
+// ── IMAGE STORAGE HELPERS ──────────────────────────────────────────────────────
+const IMG_BUCKET='site-images'
+const _signedUrlCache=new Map()
+
+async function uploadStagedImages(images,folder){
+  const result=[]
+  for(const img of images){
+    if(img.storagePath){
+      // Already in storage — keep as-is
+      result.push({name:img.name,caption:img.caption||'',storagePath:img.storagePath})
+    } else if(img.file||img.dataUrl){
+      // New image — upload to storage
+      const blob=img.file||(await fetch(img.dataUrl).then(r=>r.blob()))
+      const ext=(img.name||'img').split('.').pop()||'jpg'
+      const path=`${folder}/${crypto.randomUUID()}.${ext}`
+      const{error}=await sb.storage.from(IMG_BUCKET).upload(path,blob,{contentType:blob.type||'image/jpeg'})
+      if(error) throw new Error('Image upload failed: '+error.message)
+      result.push({name:img.name,caption:img.caption||'',storagePath:path})
+    }
+  }
+  return result
+}
+
+async function getSignedImgUrl(storagePath,expiry=3600){
+  if(!storagePath) return ''
+  const cached=_signedUrlCache.get(storagePath)
+  if(cached&&cached.expires>Date.now()) return cached.url
+  const{data,error}=await sb.storage.from(IMG_BUCKET).createSignedUrl(storagePath,expiry)
+  if(error||!data?.signedUrl) return ''
+  _signedUrlCache.set(storagePath,{url:data.signedUrl,expires:Date.now()+(expiry-60)*1000})
+  return data.signedUrl
+}
+
+// Resolve display URLs for all images in all locations (call after fetchAll)
+async function resolveAllImageUrls(){
+  const promises=[]
+  for(const loc of locations){
+    for(const img of(loc.images||[])){
+      if(img.storagePath&&!img._url){
+        promises.push(getSignedImgUrl(img.storagePath).then(u=>{img._url=u}))
+      } else if(img.dataUrl){img._url=img.dataUrl}
+    }
+    for(const v of(loc.visits||[])){
+      for(const img of(v.images||[])){
+        if(img.storagePath&&!img._url){
+          promises.push(getSignedImgUrl(img.storagePath).then(u=>{img._url=u}))
+        } else if(img.dataUrl){img._url=img.dataUrl}
+      }
+    }
+  }
+  await Promise.all(promises)
+}
+
+// Helper: get best display URL for an image object
+function imgSrc(img){return img._url||img.dataUrl||''}
 
 // ── IMAGE STAGING ─────────────────────────────────────────────────────────────
 function stageImgs(target,input){
@@ -1300,17 +1357,21 @@ function stageImgs(target,input){
   const prevId=target==='loc'?'lImgPreview':target==='fv'?'fvImgPreview':'vImgPreview'
   Array.from(input.files).forEach(f=>{
     const r=new FileReader()
-    r.onload=e=>{arr.push({name:f.name,dataUrl:e.target.result,caption:''});renderPrev(target,prevId)}
+    r.onload=e=>{arr.push({name:f.name,dataUrl:e.target.result,file:f,caption:''});renderPrev(target,prevId)}
     r.readAsDataURL(f)
   })
   input.value=''
 }
 window.stageImgs=stageImgs
-function renderPrev(target,prevId){
+async function renderPrev(target,prevId){
   const arr=target==='loc'?locImgs:target==='fv'?fvImgs:visitImgs
+  // Resolve signed URLs for stored images that haven't been resolved yet
+  await Promise.all(arr.map(async img=>{
+    if(!img.dataUrl&&img.storagePath&&!img._url) img._url=await getSignedImgUrl(img.storagePath)
+  }))
   document.getElementById(prevId).innerHTML=arr.map((img,i)=>`
     <div class="prev-item">
-      <img src="${img.dataUrl}" alt="${esc(img.name)}" />
+      <img src="${imgSrc(img)}" alt="${esc(img.name)}" />
       <button class="rm" onclick="rmImg('${target}',${i})">✕</button>
       <input class="prev-caption" placeholder="Label…" value="${esc(img.caption||'')}" oninput="updateCaption('${target}',${i},this.value)" />
     </div>`).join('')
@@ -1489,6 +1550,7 @@ window.refreshData=async function(){
   const btn=document.querySelector('[onclick="refreshData()"]')
   if(btn){ btn.disabled=true }
   locations=await fetchAll()
+  await resolveAllImageUrls()
   renderCards()
   toast('Data refreshed.')
   if(btn){ btn.disabled=false }
@@ -1572,19 +1634,28 @@ window.saveLoc=async function(){
   const addr=document.getElementById('lAddress').value.trim()
   if(!title&&!addr){toast('Enter a title or address.','err');return}
   const btn=document.getElementById('saveLocBtn')
-  btn.disabled=true; btn.textContent='Saving…'
+  btn.disabled=true; btn.textContent='Uploading images…'
   const tags=document.getElementById('lTags').value.split(',').map(t=>t.trim()).filter(Boolean)
-  let visits=[]
-  if(!editLocId&&document.getElementById('firstVisitCheck').checked){
-    const fvNotes=document.getElementById('fvNotes').value.trim()
-    if(fvNotes) visits=[{id:crypto.randomUUID(),date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:[...fvImgs]}]
-  }
-  const payload={title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:locImgs,equipment:getEquipData(),contacts:locContacts.filter(c=>c.name||c.phone),updated_at:new Date().toISOString()}
-  if(editLocId) payload.id=editLocId
-  else payload.visits=visits
+  const locId=editLocId||crypto.randomUUID()
   try{
+    // Upload location images to storage
+    const uploadedLocImgs=await uploadStagedImages(locImgs,`locations/${locId}`)
+    // Upload first-visit images if applicable
+    let visits=[]
+    if(!editLocId&&document.getElementById('firstVisitCheck').checked){
+      const fvNotes=document.getElementById('fvNotes').value.trim()
+      if(fvNotes){
+        const vid=crypto.randomUUID()
+        const uploadedFvImgs=await uploadStagedImages(fvImgs,`visits/${locId}/${vid}`)
+        visits=[{id:vid,date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:uploadedFvImgs}]
+      }
+    }
+    btn.textContent='Saving…'
+    const payload={id:locId,title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:uploadedLocImgs,equipment:getEquipData(),contacts:locContacts.filter(c=>c.name||c.phone),updated_at:new Date().toISOString()}
+    if(!editLocId) payload.visits=visits
     await upsertLoc(payload)
     locations=await fetchAll()
+    await resolveAllImageUrls()
     closeLocModal(true); renderCards()
     toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
   }catch(e){toast('Save failed: '+e.message,'err')}
@@ -1627,7 +1698,7 @@ function renderDetail(){
   const imgEl=document.getElementById('dImages')
   const imgs=loc.images||[]
   imgEl.innerHTML=imgs.length
-    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
+    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(imgSrc(img))}')"><img src="${imgSrc(img)}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
     :'<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
 
   const vEl=document.getElementById('visitList')
@@ -1682,7 +1753,7 @@ window.openVDetail=function(vid){
   const imgEl=document.getElementById('vdImages')
   if(imgs.length){
     imgTitle.style.display=''
-    imgEl.innerHTML=imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(img.dataUrl)}')"><img src="${img.dataUrl}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
+    imgEl.innerHTML=imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(imgSrc(img))}')"><img src="${imgSrc(img)}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
   }else{imgTitle.style.display='none';imgEl.innerHTML=''}
   document.getElementById('vdetailOverlay').classList.add('open')
 }
@@ -1742,19 +1813,24 @@ window.saveVisit=async function(){
   if(!notes){toast('Add notes before saving.','err');return}
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
   const btn=document.getElementById('saveVisitBtn')
-  btn.disabled=true; btn.textContent='Saving…'
+  btn.disabled=true; btn.textContent='Uploading images…'
   const visits=[...(loc.visits||[])]
   const isRange=document.getElementById('dtRange').classList.contains('active')
   const dateEnd=isRange?document.getElementById('vDateEnd').value:null
-  if(editVisitId){
-    const idx=visits.findIndex(v=>v.id===editVisitId)
-    if(idx>-1) visits[idx]={...visits[idx],date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]}
-  }else{
-    visits.push({id:crypto.randomUUID(),date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:[...visitImgs]})
-  }
   try{
+    const vid=editVisitId||crypto.randomUUID()
+    const uploadedImgs=await uploadStagedImages(visitImgs,`visits/${curLocId}/${vid}`)
+    btn.textContent='Saving…'
+    if(editVisitId){
+      const idx=visits.findIndex(v=>v.id===editVisitId)
+      if(idx>-1) visits[idx]={...visits[idx],date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:uploadedImgs}
+    }else{
+      visits.push({id:vid,date:document.getElementById('vDate').value,date_end:dateEnd||null,tech:document.getElementById('vTech').value.trim(),notes,images:uploadedImgs})
+    }
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
-    loc.visits=visits; closeVisitModal(true); renderDetail(); renderCards()
+    loc.visits=visits
+    await resolveAllImageUrls()
+    closeVisitModal(true); renderDetail(); renderCards()
     toast(editVisitId?'Visit updated.':'Visit logged.')
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Visit'
@@ -1866,7 +1942,7 @@ function renderCards(){
         const lastVisitDate=lastVisit?(lastVisit.date_end||lastVisit.date):null
         const neverVisited=visits.length===0
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
-        const thumbs=(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${i.dataUrl}" alt="" />`).join('')
+        const thumbs=(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${imgSrc(i)}" alt="" />`).join('')
         return `<div class="card" onclick="openDetail('${loc.id}')">
           <div class="card-stripe"></div>
           <div class="card-body">
@@ -1927,7 +2003,7 @@ window.exportLocationPDF=function(){
 
   const imagesHtml=(loc.images||[]).map(img=>`
     <div class="pdf-img-wrap">
-      <img src="${img.dataUrl}" alt="${escHtml(img.caption||img.name)}" />
+      <img src="${imgSrc(img)}" alt="${escHtml(img.caption||img.name)}" />
       ${(img.caption||img.name)?`<div class="pdf-img-cap">${escHtml(img.caption||img.name)}</div>`:''}
     </div>`).join('')
 
@@ -1938,7 +2014,7 @@ window.exportLocationPDF=function(){
         <span class="pdf-visit-crew">${escHtml(v.tech||'—')}</span>
       </div>
       <div class="pdf-visit-notes">${escHtml(v.notes||'').replace(/\n/g,'<br>')}</div>
-      ${(v.images||[]).length?`<div class="pdf-visit-imgs">${v.images.map(i=>`<div class="pdf-img-wrap" style="width:100px"><img src="${i.dataUrl}" style="width:100px;height:76px;object-fit:cover" />${(i.caption||i.name)?`<div class="pdf-img-cap">${escHtml(i.caption||i.name)}</div>`:''}</div>`).join('')}</div>`:''}
+      ${(v.images||[]).length?`<div class="pdf-visit-imgs">${v.images.map(i=>`<div class="pdf-img-wrap" style="width:100px"><img src="${imgSrc(i)}" style="width:100px;height:76px;object-fit:cover" />${(i.caption||i.name)?`<div class="pdf-img-cap">${escHtml(i.caption||i.name)}</div>`:''}</div>`).join('')}</div>`:''}
     </div>`).join('')
 
   const equipChips=equip?equip.split(' · ').map(e=>`<span class="pdf-equip-chip">${e}</span>`).join(''):''
@@ -2115,7 +2191,7 @@ function updateDispatchPreview(){
   document.getElementById('dispatchPreview').textContent=body||'Fill in the details above to preview the email…'
 }
 
-function buildDispatchHtml(stops, msg){
+async function buildDispatchHtml(stops, msg){
   const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th']
   const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
   const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
@@ -2186,23 +2262,28 @@ function buildDispatchHtml(stops, msg){
       stopsHtml+=`<div style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6e7585;line-height:1.5">${e(loc.description).replace(/\n/g,'<br>')}</div>`
     }
 
-    // Site images
+    // Site images — use 7-day signed URLs for email
     const siteImgs=loc?.images||[]
     if(siteImgs.length){
-      stopsHtml+=`<div style="margin-top:14px">
-        <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">SITE PHOTOS</div>
-        <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
-      siteImgs.forEach((img,i)=>{
-        // Start a new row every 2 images
-        if(i>0 && i%2===0) stopsHtml+=`</tr><tr>`
-        stopsHtml+=`<td width="50%" style="padding:0 ${i%2===0?'6px':'0'} 8px ${i%2===1?'6px':'0'};vertical-align:top">
-          <img src="${img.dataUrl}" alt="${e(img.caption||img.name||'')}" width="100%" style="display:block;width:100%;height:auto;border-radius:6px;border:1px solid #272b36" />
-          ${img.caption?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#6e7585;margin-top:4px;text-align:center">${e(img.caption)}</div>`:''}
-        </td>`
-      })
-      // Fill empty cell if odd number of images
-      if(siteImgs.length%2===1) stopsHtml+=`<td width="50%"></td>`
-      stopsHtml+=`</tr></table></div>`
+      const imgUrls=await Promise.all(siteImgs.map(async img=>{
+        if(img.storagePath) return {url:await getSignedImgUrl(img.storagePath,604800),caption:img.caption,name:img.name}
+        return {url:img._url||img.dataUrl||'',caption:img.caption,name:img.name}
+      }))
+      const validImgs=imgUrls.filter(i=>i.url)
+      if(validImgs.length){
+        stopsHtml+=`<div style="margin-top:14px">
+          <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">SITE PHOTOS</div>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
+        validImgs.forEach((img,i)=>{
+          if(i>0 && i%2===0) stopsHtml+=`</tr><tr>`
+          stopsHtml+=`<td width="50%" style="padding:0 ${i%2===0?'6px':'0'} 8px ${i%2===1?'6px':'0'};vertical-align:top">
+            <img src="${img.url}" alt="${e(img.caption||img.name||'')}" width="100%" style="display:block;width:100%;height:auto;border-radius:6px;border:1px solid #272b36" />
+            ${img.caption?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#6e7585;margin-top:4px;text-align:center">${e(img.caption)}</div>`:''}
+          </td>`
+        })
+        if(validImgs.length%2===1) stopsHtml+=`<td width="50%"></td>`
+        stopsHtml+=`</tr></table></div>`
+      }
     }
 
     stopsHtml+=`</td></tr></table></td></tr>`
@@ -2264,7 +2345,7 @@ window.sendDispatch=async function(){
   const subject=`Job Dispatch — ${firstAddr||'New Job'}${dispatchStops.length>1?' + '+(dispatchStops.length-1)+' more':''}`
 
   // Build HTML email
-  const html=buildDispatchHtml(dispatchStops, msg)
+  const html=await buildDispatchHtml(dispatchStops, msg)
 
   // Loading state
   const sendBtn=document.querySelector('#dispatchOverlay .modal-foot .btn-primary')
