@@ -2119,7 +2119,7 @@ function buildDispatchHtml(stops, msg){
   const ordinals=['1st','2nd','3rd','4th','5th','6th','7th','8th']
   const labels={gasWashers:'Gas washers',gardenHose:'Garden hose',pressureHose:'Pressure hose',contractorBags:'Contractor bags',vacuum:'Vacuum',electricWasher:'Electric washer',squeegee:'Squeegee',orangePump:'Orange pump'}
   const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-  const logoUrl=window.location.origin+'/logo.png'
+  const logoUrl=SUPA_URL+'/storage/v1/object/public/Images/T_CTFieldLogsLogo.png'
 
   let stopsHtml=''
   stops.forEach((stop,idx)=>{
@@ -2184,6 +2184,25 @@ function buildDispatchHtml(stops, msg){
     // Notes — preserve line breaks from user formatting
     if(loc?.description){
       stopsHtml+=`<div style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6e7585;line-height:1.5">${e(loc.description).replace(/\n/g,'<br>')}</div>`
+    }
+
+    // Site images
+    const siteImgs=loc?.images||[]
+    if(siteImgs.length){
+      stopsHtml+=`<div style="margin-top:14px">
+        <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">SITE PHOTOS</div>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
+      siteImgs.forEach((img,i)=>{
+        // Start a new row every 2 images
+        if(i>0 && i%2===0) stopsHtml+=`</tr><tr>`
+        stopsHtml+=`<td width="50%" style="padding:0 ${i%2===0?'6px':'0'} 8px ${i%2===1?'6px':'0'};vertical-align:top">
+          <img src="${img.dataUrl}" alt="${e(img.caption||img.name||'')}" width="100%" style="display:block;width:100%;height:auto;border-radius:6px;border:1px solid #272b36" />
+          ${img.caption?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#6e7585;margin-top:4px;text-align:center">${e(img.caption)}</div>`:''}
+        </td>`
+      })
+      // Fill empty cell if odd number of images
+      if(siteImgs.length%2===1) stopsHtml+=`<td width="50%"></td>`
+      stopsHtml+=`</tr></table></div>`
     }
 
     stopsHtml+=`</td></tr></table></td></tr>`
