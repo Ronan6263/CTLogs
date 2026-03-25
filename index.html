@@ -2198,7 +2198,8 @@ async function buildDispatchHtml(stops, msg){
   const logoUrl=SUPA_URL+'/storage/v1/object/public/Images/T_CTFieldLogsLogo.png'
 
   let stopsHtml=''
-  stops.forEach((stop,idx)=>{
+  for(let idx=0;idx<stops.length;idx++){
+    const stop=stops[idx]
     const loc=stop.locId?locations.find(l=>l.id===stop.locId):null
     const addr=loc?loc.address:stop.customAddress
     const contacts=loc?(loc.contacts||[]):[]
@@ -2287,7 +2288,7 @@ async function buildDispatchHtml(stops, msg){
     }
 
     stopsHtml+=`</td></tr></table></td></tr>`
-  })
+  }
 
   // Dispatcher message
   let msgHtml=''
