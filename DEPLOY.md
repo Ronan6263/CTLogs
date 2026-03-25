@@ -43,7 +43,7 @@
 Free Resend tier allows 100 emails/day and sends from `onboarding@resend.dev`.
 To send from your own domain (e.g. `dispatch@yourdomain.com`), add and verify your
 domain in the Resend dashboard under **Domains**, then set a `RESEND_FROM` environment
-variable in Vercel (e.g. `CT Logs <dispatch@yourdomain.com>`).
+variable in Vercel (e.g. `AMC <dispatch@yourdomain.com>`).
 
 ---
 
@@ -57,7 +57,7 @@ Both of you will see the same live data instantly.
 
 ## Notes
 
-- Images are stored as base64 inside the database — no separate file storage needed
+- Images are stored in Supabase Storage (site-images bucket) — lightweight paths in the database
 - Data is shared in real time between all users
 - Free tier on both Supabase and Vercel is more than enough for your usage
 - To update the app in future: edit index.html and re-deploy to Vercel

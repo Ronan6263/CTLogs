@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: to, subject, html' });
   }
 
-  const from = process.env.RESEND_FROM || 'CT Logs <onboarding@resend.dev>';
+  const from = process.env.RESEND_FROM || 'AMC <onboarding@resend.dev>';
 
   try {
     const { data, error } = await resend.emails.send({

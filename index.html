@@ -122,6 +122,9 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
   #mainContent{margin-left:0!important}
   body.sb-collapsed .sidebar{width:240px}
   .sb-collapse-btn{display:none}
+  /* Lock body scroll when any modal overlay is open on mobile */
+  .overlay.open~*,.overlay.open,.vdetail-overlay.open,.admin-overlay.open,.dispatch-overlay.open{overflow-y:auto}
+  body:has(.overlay.open),body:has(.vdetail-overlay.open),body:has(.admin-overlay.open),body:has(.dispatch-overlay.open),body:has(.lightbox.open){overflow:hidden}
 }
 
 /* ── BUTTONS ── */
@@ -2295,31 +2298,31 @@ async function buildDispatchHtml(stops, msg){
 
     // Stop header
     stopsHtml+=`<tr><td style="padding:0 0 24px 0">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#1f2330;border:1px solid #272b36;border-radius:8px;padding:20px 24px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#ffffff;border:1px solid #d0d4dc;border-radius:8px;padding:20px 24px">
 
       <!-- Ordinal (hide if single stop) -->
       ${stops.length>1?`<table cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="font-family:'Courier New',monospace;font-size:11px;color:#e8a020;letter-spacing:0.12em;text-transform:uppercase;background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.25);border-radius:3px;padding:3px 10px">${ordinals[idx]||idx+1+'.'} STOP</td>
+        <td style="font-family:Inter,system-ui,Arial,sans-serif;font-size:11px;color:#c48a10;letter-spacing:0.12em;text-transform:uppercase;background:rgba(196,138,16,0.08);border:1px solid rgba(196,138,16,0.25);border-radius:3px;padding:3px 10px;font-weight:700">${ordinals[idx]||idx+1+'.'} STOP</td>
       </tr></table>`:''}
 
       <!-- Address -->
-      ${addr?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:#eef1f8;margin-top:12px">${e(addr)}</div>`:''}`
+      ${addr?`<div style="font-family:Inter,system-ui,Arial,sans-serif;font-size:18px;font-weight:700;color:#1a1e28;margin-top:12px">${e(addr)}</div>`:''}`
 
     // Contacts
     if(contacts.length){
       stopsHtml+=`<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px">`
       contacts.forEach(c=>{
-        const phone=c.phone?`<a href="tel:${e(c.phone)}" style="color:#4fd1c5;text-decoration:none;font-family:'Courier New',monospace;font-size:13px">${e(c.phone)}</a>`:''
-        const email=c.email?`<a href="mailto:${e(c.email)}" style="color:#4fd1c5;text-decoration:none;font-size:13px">${e(c.email)}</a>`:''
-        stopsHtml+=`<tr><td style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc">
-          <strong>${e(c.name)}</strong>${c.role?` <span style="color:#6e7585;font-size:12px">(${e(c.role)})</span>`:''}
+        const phone=c.phone?`<a href="tel:${e(c.phone)}" style="color:#1a9e92;text-decoration:none;font-family:Inter,system-ui,Arial,sans-serif;font-size:13px">${e(c.phone)}</a>`:''
+        const email=c.email?`<a href="mailto:${e(c.email)}" style="color:#1a9e92;text-decoration:none;font-size:13px">${e(c.email)}</a>`:''
+        stopsHtml+=`<tr><td style="padding:4px 0;font-family:Inter,system-ui,Arial,sans-serif;font-size:14px;color:#1a1e28">
+          <strong>${e(c.name)}</strong>${c.role?` <span style="color:#5c6370;font-size:12px">(${e(c.role)})</span>`:''}
           ${phone?'&nbsp;&mdash; '+phone:''}${email?'&nbsp;&mdash; '+email:''}
         </td></tr>`
       })
       stopsHtml+=`</table>`
     } else if(stop.contactName){
-      const phone=stop.contactPhone?`<a href="tel:${e(stop.contactPhone)}" style="color:#4fd1c5;text-decoration:none;font-family:'Courier New',monospace;font-size:13px">${e(stop.contactPhone)}</a>`:''
-      stopsHtml+=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc;margin-top:14px">
+      const phone=stop.contactPhone?`<a href="tel:${e(stop.contactPhone)}" style="color:#1a9e92;text-decoration:none;font-family:Inter,system-ui,Arial,sans-serif;font-size:13px">${e(stop.contactPhone)}</a>`:''
+      stopsHtml+=`<div style="font-family:Inter,system-ui,Arial,sans-serif;font-size:14px;color:#1a1e28;margin-top:14px">
         <strong>${e(stop.contactName)}</strong>${phone?'&nbsp;&mdash; '+phone:''}
       </div>`
     }
@@ -2327,8 +2330,8 @@ async function buildDispatchHtml(stops, msg){
     // Warning for unmapped locations
     if(!stop.locId){
       stopsHtml+=`<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px"><tr>
-        <td style="width:4px;background:#e8a020;border-radius:2px"></td>
-        <td style="padding:10px 14px;background:rgba(232,160,32,0.06);border:1px solid rgba(232,160,32,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8a020">
+        <td style="width:4px;background:#c48a10;border-radius:2px"></td>
+        <td style="padding:10px 14px;background:rgba(196,138,16,0.06);border:1px solid rgba(196,138,16,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Inter,system-ui,Arial,sans-serif;font-size:13px;color:#a06e08">
           <strong>NEW LOCATION</strong> &mdash; No field card on file. Please complete a site report on arrival.
         </td>
       </tr></table>`
@@ -2339,17 +2342,17 @@ async function buildDispatchHtml(stops, msg){
       const items=Object.entries(loc.equipment).map(([k,v])=>{
         const label=labels[k]||k
         const val=typeof v==='number'?`${v}${k.includes('Hose')?'ft':''}`:''
-        return `<span style="display:inline-block;background:#272b36;border:1px solid #363b48;border-radius:4px;padding:3px 10px;margin:3px 4px 3px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#c8cedc">${e(label)}${val?': <strong>'+val+'</strong>':''}</span>`
+        return `<span style="display:inline-block;background:#eef0f4;border:1px solid #d0d4dc;border-radius:4px;padding:3px 10px;margin:3px 4px 3px 0;font-family:Inter,system-ui,Arial,sans-serif;font-size:12px;color:#1a1e28">${e(label)}${val?': <strong>'+val+'</strong>':''}</span>`
       }).join('')
       stopsHtml+=`<div style="margin-top:14px">
-        <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">EQUIPMENT</div>
+        <div style="font-family:Inter,system-ui,Arial,sans-serif;font-size:10px;color:#5c6370;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;font-weight:700">EQUIPMENT</div>
         ${items}
       </div>`
     }
 
     // Notes — preserve line breaks from user formatting
     if(loc?.description){
-      stopsHtml+=`<div style="margin-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6e7585;line-height:1.5">${e(loc.description).replace(/\n/g,'<br>')}</div>`
+      stopsHtml+=`<div style="margin-top:12px;font-family:Inter,system-ui,Arial,sans-serif;font-size:13px;color:#5c6370;line-height:1.5">${e(loc.description).replace(/\n/g,'<br>')}</div>`
     }
 
     // Site images — use 7-day signed URLs for email
@@ -2362,13 +2365,13 @@ async function buildDispatchHtml(stops, msg){
       const validImgs=imgUrls.filter(i=>i.url)
       if(validImgs.length){
         stopsHtml+=`<div style="margin-top:14px">
-          <div style="font-family:'Courier New',monospace;font-size:10px;color:#6e7585;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">SITE PHOTOS</div>
+          <div style="font-family:Inter,system-ui,Arial,sans-serif;font-size:10px;color:#5c6370;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;font-weight:700">SITE PHOTOS</div>
           <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
         validImgs.forEach((img,i)=>{
           if(i>0 && i%2===0) stopsHtml+=`</tr><tr>`
           stopsHtml+=`<td width="50%" style="padding:0 ${i%2===0?'6px':'0'} 8px ${i%2===1?'6px':'0'};vertical-align:top">
-            <img src="${img.url}" alt="${e(img.caption||img.name||'')}" width="100%" style="display:block;width:100%;height:auto;border-radius:6px;border:1px solid #272b36" />
-            ${img.caption?`<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#6e7585;margin-top:4px;text-align:center">${e(img.caption)}</div>`:''}
+            <img src="${img.url}" alt="${e(img.caption||img.name||'')}" width="100%" style="display:block;width:100%;height:auto;border-radius:6px;border:1px solid #d0d4dc" />
+            ${img.caption?`<div style="font-family:Inter,system-ui,Arial,sans-serif;font-size:11px;color:#5c6370;margin-top:4px;text-align:center">${e(img.caption)}</div>`:''}
           </td>`
         })
         if(validImgs.length%2===1) stopsHtml+=`<td width="50%"></td>`
@@ -2384,20 +2387,20 @@ async function buildDispatchHtml(stops, msg){
   if(msg){
     msgHtml=`<tr><td style="padding:0 0 24px 0">
       <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="width:4px;background:#4fd1c5;border-radius:2px"></td>
-        <td style="padding:14px 18px;background:rgba(79,209,197,0.05);border:1px solid rgba(79,209,197,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#c8cedc;font-style:italic;line-height:1.6">${e(msg).replace(/\n/g,'<br>')}</td>
+        <td style="width:4px;background:#1a9e92;border-radius:2px"></td>
+        <td style="padding:14px 18px;background:rgba(26,158,146,0.05);border:1px solid rgba(26,158,146,0.15);border-left:none;border-radius:0 6px 6px 0;font-family:Inter,system-ui,Arial,sans-serif;font-size:14px;color:#1a1e28;font-style:italic;line-height:1.6">${e(msg).replace(/\n/g,'<br>')}</td>
       </tr></table>
     </td></tr>`
   }
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Job Dispatch</title></head>
-<body style="margin:0;padding:0;background:#13151a;font-family:Arial,Helvetica,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#13151a"><tr><td align="center" style="padding:32px 16px">
+<body style="margin:0;padding:0;background:#f5f6f8;font-family:Inter,system-ui,Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f6f8"><tr><td align="center" style="padding:32px 16px">
   <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
 
     <!-- Header / Logo -->
     <tr><td style="padding:0 0 24px 0">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:20px 24px;border-bottom:2px solid #272b36">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:20px 24px;border-bottom:2px solid #d0d4dc">
         <img src="${logoUrl}" alt="AMC" width="160" style="display:block;width:160px;height:auto" />
       </td></tr></table>
     </td></tr>
@@ -2409,7 +2412,7 @@ async function buildDispatchHtml(stops, msg){
     ${msgHtml}
 
     <!-- Footer -->
-    <tr><td style="padding:16px 0 0 0;border-top:1px solid #272b36;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#4a4f5c">
+    <tr><td style="padding:16px 0 0 0;border-top:1px solid #d0d4dc;text-align:center;font-family:Inter,system-ui,Arial,sans-serif;font-size:11px;color:#9ca3af">
       Dispatched via AMC
     </td></tr>
 

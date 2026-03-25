@@ -1,9 +1,9 @@
-// CT Logs Service Worker — Offline Support
+// AMC Service Worker — Offline Support
 const CACHE = 'ctlogs-v1'
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
-  'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
 ]
 
