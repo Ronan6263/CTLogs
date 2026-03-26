@@ -161,7 +161,7 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .home-card-desc{font-size:13px;color:var(--text-dim);line-height:1.5}
 
 /* ── SCHEDULE ── */
-.sched-shell{max-width:100%;padding:24px 16px 160px}
+.sched-shell{max-width:100%;padding:24px 16px 260px}
 .sched-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
 .sched-title{font-family:var(--cond);font-size:22px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--text)}
 .sched-nav{display:flex;align-items:center;gap:8px;margin-left:auto}
@@ -183,26 +183,30 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .sched-day{background:var(--surface);display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--border)}
 .sched-day:last-child{border-right:none}
 .sched-day-head{background:var(--panel);padding:8px 6px;text-align:center;border-bottom:1px solid var(--border)}
-.sched-day-name{font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)}
-.sched-day-date{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:1px}
-.sched-day-body{flex:1;padding:4px;display:flex;flex-direction:column;gap:4px;min-height:80px;transition:background 0.15s}
+.sched-day-name{font-family:var(--cond);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)}
+.sched-day-date{font-family:var(--mono);font-size:13px;color:var(--text-faint);margin-top:2px}
+.sched-day-body{flex:1;padding:4px;display:flex;flex-direction:column;gap:4px;min-height:100px;transition:background 0.15s}
 .sched-day-body.drag-over{background:var(--amber-glow)}
 .sched-job{border-radius:var(--radius);overflow:hidden;background:var(--panel);border:1px solid var(--border);transition:box-shadow 0.15s;cursor:grab}
 .sched-job.dragging-job{opacity:0.4}
 .sched-job.drag-over-job{outline:2px solid var(--amber);outline-offset:-2px}
 .sched-job:hover{box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.sched-job-title{padding:5px 8px;font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative}
-.sched-job-title .note-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.5;margin-left:auto;flex-shrink:0}
-.sched-job-crew{padding:2px 8px 4px;font-size:11px;color:var(--text);line-height:1.4;min-height:16px}
+.sched-job.selected{outline:2px solid var(--amber);outline-offset:1px}
+.sched-job-title{padding:6px 10px;font-family:var(--cond);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative}
+.sched-job-title .note-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.5;margin-left:auto;flex-shrink:0}
+.sched-job-crew{padding:4px 10px 6px;font-size:15px;color:var(--text);line-height:1.5;min-height:20px}
 .sched-job-crew .crew-name{display:block;padding:1px 0;position:relative}
 .sched-job-crew .crew-name.dragging{opacity:0.3}
 
 /* Admin: add-job button */
-.sched-add-job{width:100%;padding:5px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius);color:var(--text-faint);font-size:10px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all 0.15s;margin-top:auto}
+.sched-sub-title{border-top:1px solid rgba(255,255,255,0.15);font-size:12px;padding:4px 10px}
+.sched-add-sub{display:block;width:100%;padding:2px 10px;background:transparent;border:none;border-top:1px dashed var(--border);color:var(--text-faint);font-size:10px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;text-align:left;transition:all 0.15s}
+.sched-add-sub:hover{color:var(--amber);background:var(--amber-glow)}
+.sched-add-job{width:100%;padding:6px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius);color:var(--text-faint);font-size:13px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all 0.15s;margin-top:auto}
 .sched-add-job:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-glow)}
 
 /* Admin: delete job X */
-.sched-job-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;opacity:0.5;font-size:14px;cursor:pointer;padding:0 4px;line-height:1}
+.sched-job-del{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;opacity:0.5;font-size:13px;cursor:pointer;padding:0 3px;line-height:1}
 .sched-job-del:hover{opacity:1}
 
 /* Job notes popup */
@@ -212,16 +216,14 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .job-note-popup .popup-title{font-family:var(--cond);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:8px}
 
 /* Bottom crew panel (admin) */
-.crew-panel{position:fixed;bottom:0;left:200px;right:0;z-index:180;background:var(--surface);border-top:2px solid var(--amber);transform:translateY(calc(100% - 32px));transition:transform 0.25s ease,left 0.2s ease;padding:0}
+.crew-panel{position:fixed;bottom:0;left:200px;right:0;z-index:180;background:var(--surface);border-top:2px solid var(--amber);transition:left 0.2s ease;padding:0}
 body.sb-collapsed .crew-panel{left:56px}
-.crew-panel:hover,.crew-panel.pinned{transform:translateY(0)}
 .crew-panel-resize{height:6px;cursor:ns-resize;background:transparent;position:relative;display:flex;align-items:center;justify-content:center}
 .crew-panel-resize::after{content:'';width:40px;height:3px;border-radius:2px;background:var(--border-hi)}
 .crew-panel-handle{height:28px;background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;user-select:none}
 .crew-panel-handle::before{content:'CREW';font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--amber)}
 .crew-panel-handle::after{content:'▲';font-size:10px;color:var(--amber);transition:transform 0.25s}
-.crew-panel:hover .crew-panel-handle::after,.crew-panel.pinned .crew-panel-handle::after{transform:rotate(180deg)}
-.crew-panel-body{padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px;overflow-y:auto;align-content:flex-start;height:160px}
+.crew-panel-body{padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px;overflow-y:auto;align-content:flex-start;min-height:60px;max-height:40vh}
 .crew-chip{padding:4px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:600;color:var(--text);cursor:grab;user-select:none;white-space:nowrap;transition:all 0.15s}
 .crew-chip.super{border-color:var(--amber);background:var(--amber-glow);font-weight:800;color:var(--amber)}
 html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c00}
@@ -242,7 +244,7 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-shell{padding:16px 8px 160px}
   .sched-grid{grid-template-columns:repeat(7,minmax(130px,1fr))}
   .crew-panel-body{height:100px}
-  .crew-panel{transform:translateY(calc(100% - 32px));left:0!important}
+  .crew-panel{left:0!important}
 }
 
 /* ── SEARCH ── */
@@ -2383,23 +2385,24 @@ ${visitsHtml?`<div class="pdf-section"><div class="pdf-section-title">Visit Hist
 
 // ── SCHEDULE ──────────────────────────────────────────────────────────────────
 const JOB_COLORS={
-  'TOWER CLEAN':'#22b14c','SAND FILTER':'#ed7d31','CW TANKS':'#00bfff',
-  'ICE MACHINES':'#ffff00','DISINFECTION':'#ff7f7f','DWD':'#ff00ff',
-  'WATER WALLS':'#00b0f0','AHUS':'#ffc0cb','OTHER':'#ff0000'
+  'SAND FILTER':'#8B4513','CW TANKS':'#003366','TOWER CLEAN':'#22b14c',
+  'ICE MACHINES':'#5bc0de','DISINFECTION':'#FFCBA4','DWD':'#D2B48C',
+  'WATER WALLS':'#4682B4','AHUS':'#FFB6C1','OTHER':'#FFD700'
 }
 const DEFAULT_JOB_COLOR='#808080'
 
 let schedLoaded=false
 let schedCollapsed=JSON.parse(localStorage.getItem('sched_collapsed')||'{}')
-let schedWeekStart=null // Sunday of current displayed week
+let schedWeekStart=null // Monday of current displayed week
 let schedData={} // keyed by ISO date string, value = array of jobs
 
-// Get Sunday of the week containing a date
-function getSunday(d){
+// Get Monday of the week containing a date
+function getMonday(d){
   const dt=new Date(d)
   dt.setHours(0,0,0,0)
   const day=dt.getDay()
-  dt.setDate(dt.getDate()-day)
+  // Sunday=0 maps to -6, Mon=1 maps to 0, etc.
+  dt.setDate(dt.getDate()-(day===0?6:day-1))
   return dt
 }
 
@@ -2416,7 +2419,7 @@ window.schedNavWeek=function(dir){
   saveScheduleData()
 }
 window.schedGoToday=function(){
-  schedWeekStart=getSunday(new Date())
+  schedWeekStart=getMonday(new Date())
   renderSchedule()
 }
 window.toggleSchedRegion=function(region){
@@ -2429,11 +2432,11 @@ window.toggleSchedRegion=function(region){
 // ── Schedule Data (Supabase table: schedule_data) ────────────────────────────
 async function loadSchedule(){
   schedLoaded=true
-  schedWeekStart=getSunday(new Date())
+  schedWeekStart=getMonday(new Date())
   // Try to load from Supabase
   try{
     const token=(await sb.auth.getSession())?.data?.session?.access_token
-    const res=await fetch(`${SUPA_URL}/rest/v1/schedule_data?select=*`,{
+    const res=await fetch(`${SUPA_URL}/rest/v1/schedule_data?select=*&order=sort_order.asc,created_at.asc`,{
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Accept':'application/json'}
     })
     if(res.ok){
@@ -2441,7 +2444,7 @@ async function loadSchedule(){
       schedData={}
       rows.forEach(r=>{
         if(!schedData[r.date_key]) schedData[r.date_key]=[]
-        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield'})
+        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
       })
     }
   }catch(e){console.warn('Schedule load failed, using empty:',e)}
@@ -2451,7 +2454,7 @@ async function loadSchedule(){
 async function saveJob(dateKey,job){
   try{
     const token=(await sb.auth.getSession())?.data?.session?.access_token
-    const payload={id:job.id,date_key:dateKey,title:job.title,job_type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,crew:job.crew||[],notes:job.notes||'',region:job.region||'Middlefield',updated_at:new Date().toISOString()}
+    const payload={id:job.id,date_key:dateKey,title:job.title,job_type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,crew:job.crew||[],notes:job.notes||'',region:job.region||'Middlefield',subs:job.subs||[],sort_order:job.sort_order??999,updated_at:new Date().toISOString()}
     await fetch(`${SUPA_URL}/rest/v1/schedule_data`,{
       method:'POST',
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
@@ -2495,7 +2498,7 @@ function getJobGlobalIdx(dateKey,job){
 function renderSchedule(){
   const grid=document.getElementById('schedGrid')
   const isAdmin=currentProfile?.role==='admin'
-  const dayNames=['SUN','MON','TUE','WED','THU','FRI','SAT']
+  const dayNames=['MON','TUE','WED','THU','FRI','SAT','SUN']
   const todayStr=isoDate(new Date())
 
   // Update week label
@@ -2503,67 +2506,101 @@ function renderSchedule(){
   endDate.setDate(endDate.getDate()+6)
   document.getElementById('schedWeekLabel').textContent=`${fmtDateShort(schedWeekStart)} – ${fmtDateShort(endDate)}, ${endDate.getFullYear()}`
 
-  let html=''
-  SCHED_REGIONS.forEach(region=>{
-    const collapsed=schedCollapsed[region]?'collapsed':''
-    html+=`<div class="sched-region ${collapsed}" data-region="${region}">
-      <div class="sched-region-header" onclick="toggleSchedRegion('${region}')">
-        <div class="sched-region-label">${esc(region)}</div>
-        <div class="sched-region-line"></div>
-        <div class="sched-region-chevron">▼</div>
+  let html='<div class="sched-grid">'
+  for(let i=0;i<7;i++){
+    const dt=new Date(schedWeekStart)
+    dt.setDate(dt.getDate()+i)
+    const dk=isoDate(dt)
+    const isToday=dk===todayStr
+    const jobs=(schedData[dk]||[])
+
+    html+=`<div class="sched-day">
+      <div class="sched-day-head" style="${isToday?'background:var(--amber-glow);border-bottom-color:var(--amber)':''}">
+        <div class="sched-day-name" style="${isToday?'color:var(--amber)':''}">${dayNames[i]}</div>
+        <div class="sched-day-date">${fmtDateShort(dt)}</div>
       </div>
-      <div class="sched-grid">`
+      <div class="sched-day-body" data-date="${dk}"
+        ${isAdmin?`ondragover="dayDragOver(event)" ondragleave="dayDragLeave(event)" ondrop="dayDrop(event)"`:''}>`
 
-    for(let i=0;i<7;i++){
-      const dt=new Date(schedWeekStart)
-      dt.setDate(dt.getDate()+i)
-      const dk=isoDate(dt)
-      const isToday=dk===todayStr
-      const jobs=getJobsForRegionDay(dk,region)
-
-      html+=`<div class="sched-day">
-        <div class="sched-day-head" style="${isToday?'background:var(--amber-glow);border-bottom-color:var(--amber)':''}">
-          <div class="sched-day-name" style="${isToday?'color:var(--amber)':''}">${dayNames[i]}</div>
-          <div class="sched-day-date">${fmtDateShort(dt)}</div>
-        </div>
-        <div class="sched-day-body" data-date="${dk}" data-region="${region}"
-          ${isAdmin?`ondragover="dayDragOver(event)" ondragleave="dayDragLeave(event)" ondrop="dayDrop(event)"`:''}>`
-
-      jobs.forEach(job=>{
-        const ji=getJobGlobalIdx(dk,job)
-        const bgColor=job.color||JOB_COLORS[job.type]||DEFAULT_JOB_COLOR
-        const _rgb=parseInt((bgColor||'#808080').replace('#',''),16)
-        const _lum=(((_rgb>>16)&0xff)*299+((_rgb>>8)&0xff)*587+(_rgb&0xff)*114)/1000
-        const _txtC=_lum>150?'#000':'#fff'
-        html+=`<div class="sched-job" data-date="${dk}" data-idx="${ji}" data-region="${region}"
-          ${isAdmin?`draggable="true" ondragstart="jobBlockDragStart(event,'${dk}',${ji})"
-          ondragover="jobDragOver(event)" ondragleave="jobDragLeave(event)" ondrop="jobDrop(event)"`:''}>`
-        html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="openJobNote('${dk}',${ji},event)">
-            <span>${esc(job.title)}</span>
-            ${job.notes?'<span class="note-dot"></span>':''}
-            ${isAdmin?`<button class="sched-job-del" onclick="event.stopPropagation();deleteJob('${dk}',${ji})" title="Remove job">✕</button>`:''}
-          </div>
-          <div class="sched-job-crew">`
-        // Sort: supervisors first
-        const crewSorted=job.crew.map((name,ci)=>{
-          const entry=CREW_LIST.find(c=>c.name.toUpperCase()===name.toUpperCase())
-          return {name,ci,isSuper:entry?entry.super:false}
-        }).sort((a,b)=>(b.isSuper?1:0)-(a.isSuper?1:0))
-        crewSorted.forEach(({name,ci,isSuper})=>{
-          html+=`<span class="crew-name" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})"`:''}>
-            ${esc(name)}${isAdmin?` <span style="cursor:pointer;color:var(--red);font-size:10px;margin-left:2px" onclick="removeCrewFromJob('${dk}',${ji},${ci})">✕</span>`:''}
-          </span>`
+    jobs.forEach((job,ji)=>{
+      const bgColor=job.color||JOB_COLORS[job.type]||DEFAULT_JOB_COLOR
+      const _rgb=parseInt((bgColor||'#808080').replace('#',''),16)
+      const _lum=(((_rgb>>16)&0xff)*299+((_rgb>>8)&0xff)*587+(_rgb&0xff)*114)/1000
+      const _txtC=_lum>150?'#000':'#fff'
+      html+=`<div class="sched-job" data-date="${dk}" data-idx="${ji}"
+        ${isAdmin?`draggable="true" ondragstart="jobBlockDragStart(event,'${dk}',${ji})"
+        ondragover="jobDragOver(event)" ondragleave="jobDragLeave(event)" ondrop="jobDrop(event)"`:''}>`
+      html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="openJobNote('${dk}',${ji},event)">
+          <span>${esc(job.title)}</span>
+          ${job.notes?'<span class="note-dot"></span>':''}
+          ${isAdmin?`<button class="sched-job-del" onclick="event.stopPropagation();deleteJob('${dk}',${ji})" title="Remove job">✕</button>`:''}
+        </div>`
+      // Render sub-jobs (additional locations within same block)
+      if(job.subs&&job.subs.length){
+        job.subs.forEach((sub,si)=>{
+          const sBg=sub.color||JOB_COLORS[sub.type]||DEFAULT_JOB_COLOR
+          const sRgb=parseInt((sBg||'#808080').replace('#',''),16)
+          const sLum=(((sRgb>>16)&0xff)*299+((sRgb>>8)&0xff)*587+(sRgb&0xff)*114)/1000
+          const sTxt=sLum>150?'#000':'#fff'
+          html+=`<div class="sched-job-title sched-sub-title" style="background:${sBg};color:${sTxt}" onclick="openSubNote('${dk}',${ji},${si},event)">
+            <span>${esc(sub.title||'SUB JOB')}</span>
+            ${isAdmin?`<button class="sched-job-del" onclick="event.stopPropagation();removeSub('${dk}',${ji},${si})" title="Remove sub-job">✕</button>`:''}
+          </div>`
         })
-        html+=`</div></div>`
-      })
-
-      if(isAdmin){
-        html+=`<button class="sched-add-job" onclick="addJob('${dk}','${region}')">+ Add</button>`
       }
+      html+=`${isAdmin?`<button class="sched-add-sub" onclick="event.stopPropagation();addSubJob('${dk}',${ji})">+ location</button>`:''}
+        <div class="sched-job-crew">`
+      // Sort: supervisors first, then alphabetically
+      const crewSorted=job.crew.map((name,ci)=>{
+        const entry=CREW_LIST.find(c=>c.name.toUpperCase()===name.toUpperCase())
+        return {name,ci,isSuper:entry?entry.super:false}
+      }).sort((a,b)=>(b.isSuper?1:0)-(a.isSuper?1:0)||(a.name.localeCompare(b.name)))
+      crewSorted.forEach(({name,ci,isSuper})=>{
+        html+=`<span class="crew-name" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})"`:''}>
+          ${esc(name)}${isAdmin?` <span style="cursor:pointer;color:var(--red);font-size:10px;margin-left:2px" onclick="removeCrewFromJob('${dk}',${ji},${ci})">✕</span>`:''}
+        </span>`
+      })
       html+=`</div></div>`
+    })
+
+    if(isAdmin){
+      html+=`<button class="sched-add-job" onclick="addJob('${dk}')">+ Add</button>`
     }
     html+=`</div></div>`
-  })
+  }
+  html+=`</div>`
+
+  // "OFF" section — show unassigned crew per day
+  html+=`<div style="margin-top:20px">
+    <div style="font-family:var(--cond);font-size:14px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px">Off / Unassigned</div>
+    <div class="sched-grid" style="min-height:auto">`
+  for(let i=0;i<7;i++){
+    const dt=new Date(schedWeekStart)
+    dt.setDate(dt.getDate()+i)
+    const dk=isoDate(dt)
+    const dayJobs=schedData[dk]||[]
+    // Collect all assigned names (case-insensitive)
+    const assigned=new Set()
+    dayJobs.forEach(job=>{
+      (job.crew||[]).forEach(n=>assigned.add(n.toUpperCase()))
+    })
+    const off=CREW_LIST.filter(c=>!assigned.has(c.name.toUpperCase()))
+    html+=`<div class="sched-day">
+      <div class="sched-day-head" style="padding:6px">
+        <div class="sched-day-name" style="font-size:11px">${dayNames[i]}</div>
+      </div>
+      <div style="padding:4px 6px;font-size:12px;color:var(--text-dim);line-height:1.6">`
+    if(off.length===0){
+      html+=`<span style="color:var(--teal);font-size:11px">All assigned</span>`
+    } else {
+      off.forEach(c=>{
+        html+=`<div style="padding:1px 0;${c.super?'font-weight:700;color:var(--amber)':''}">${esc(c.name.toUpperCase())} OFF</div>`
+      })
+    }
+    html+=`</div></div>`
+  }
+  html+=`</div></div>`
+
   grid.innerHTML=html
 
   // Render crew panel for admins
@@ -2571,22 +2608,131 @@ function renderSchedule(){
 }
 
 // ── Admin: Add / Delete Jobs ─────────────────────────────────────────────────
-window.addJob=function(dateKey,region){
+window.addJob=function(dateKey){
   if(!schedData[dateKey]) schedData[dateKey]=[]
   const id=crypto.randomUUID()
-  const job={id,title:'NEW JOB',type:'OTHER',color:DEFAULT_JOB_COLOR,crew:[],notes:'',region:region||'Middlefield'}
+  const sortOrder=schedData[dateKey].length
+  const job={id,title:'NEW JOB',type:'OTHER',color:DEFAULT_JOB_COLOR,crew:[],notes:'',region:'Middlefield',subs:[],sort_order:sortOrder}
   schedData[dateKey].push(job)
   saveJob(dateKey,job)
   renderSchedule()
 }
 
+// Reorder: save sort_order for all jobs on a given day
+async function saveDayOrder(dateKey){
+  const jobs=schedData[dateKey]||[]
+  jobs.forEach((job,i)=>{job.sort_order=i})
+  // Save all in parallel
+  await Promise.all(jobs.map(job=>saveJob(dateKey,job)))
+}
+
+window.moveJob=function(dateKey,idx,dir){
+  const jobs=schedData[dateKey]||[]
+  const newIdx=idx+dir
+  if(newIdx<0||newIdx>=jobs.length) return
+  // Swap
+  const tmp=jobs[idx]
+  jobs[idx]=jobs[newIdx]
+  jobs[newIdx]=tmp
+  saveDayOrder(dateKey)
+  renderSchedule()
+}
+
 window.deleteJob=function(dateKey,idx){
   const jobs=schedData[dateKey]||[]
-  if(!jobs[idx]) return
+  if(idx<0||idx>=jobs.length) return
   const jobId=jobs[idx].id
   jobs.splice(idx,1)
   deleteJobFromDB(jobId)
   renderSchedule()
+}
+
+// ── Sub-jobs (multiple locations in one block) ──────────────────────────────
+window.addSubJob=function(dateKey,idx){
+  const jobs=schedData[dateKey]||[]
+  const job=jobs[idx]
+  if(!job) return
+  if(!job.subs) job.subs=[]
+  job.subs.push({title:'SUB JOB',type:'OTHER',color:DEFAULT_JOB_COLOR})
+  saveJob(dateKey,job)
+  renderSchedule()
+}
+window.removeSub=function(dateKey,idx,si){
+  const job=(schedData[dateKey]||[])[idx]
+  if(!job||!job.subs) return
+  job.subs.splice(si,1)
+  saveJob(dateKey,job)
+  renderSchedule()
+}
+window.openSubNote=function(dateKey,idx,si,event){
+  const job=(schedData[dateKey]||[])[idx]
+  if(!job||!job.subs||!job.subs[si]) return
+  const isAdmin=currentProfile?.role==='admin'
+  const sub=job.subs[si]
+  const popup=document.getElementById('jobNotePopup')
+  const textarea=document.getElementById('jobNoteText')
+  const titleEl=document.getElementById('jobNoteTitle')
+
+  noteTarget={dateKey,idx,subIdx:si}
+
+  const rect=event.target.getBoundingClientRect()
+  popup.style.left=Math.min(rect.left,window.innerWidth-340)+'px'
+  popup.style.top=Math.min(rect.bottom+8,window.innerHeight-200)+'px'
+  popup.style.display='block'
+
+  if(isAdmin){
+    titleEl.innerHTML=`<input id="jobNoteTitleInput" value="${esc(sub.title)}" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-family:var(--cond);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;width:100%;margin-bottom:8px" />
+      <select id="jobNoteTypeSelect" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px">
+        ${Object.keys(JOB_COLORS).map(t=>`<option value="${t}" ${t===(sub.type||'OTHER')?'selected':''}>${t}</option>`).join('')}
+      </select>`
+    textarea.value=sub.notes||''
+    textarea.readOnly=false
+    document.querySelector('#jobNotePopup .btn-primary').style.display=''
+    document.querySelector('#jobNotePopup .btn-ghost').textContent='Cancel'
+  } else {
+    titleEl.textContent=sub.title
+    textarea.value=sub.notes||'No notes for this location.'
+    textarea.readOnly=true
+    document.querySelector('#jobNotePopup .btn-primary').style.display='none'
+    document.querySelector('#jobNotePopup .btn-ghost').textContent='Close'
+  }
+}
+
+// ── Duplicate Job (Ctrl+D) ───────────────────────────────────────────────────
+let selectedJob=null // {dateKey, idx}
+// Click on a job to select it
+document.addEventListener('click',function(e){
+  const jobEl=e.target.closest('.sched-job')
+  if(jobEl){
+    document.querySelectorAll('.sched-job.selected').forEach(j=>j.classList.remove('selected'))
+    jobEl.classList.add('selected')
+    selectedJob={dateKey:jobEl.dataset.date,idx:parseInt(jobEl.dataset.idx)}
+  } else if(!e.target.closest('.job-note-popup')){
+    document.querySelectorAll('.sched-job.selected').forEach(j=>j.classList.remove('selected'))
+    selectedJob=null
+  }
+})
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.key==='d'&&selectedJob&&currentProfile?.role==='admin'){
+    e.preventDefault()
+    duplicateJob(selectedJob.dateKey,selectedJob.idx)
+  }
+})
+function duplicateJob(dateKey,idx){
+  const jobs=schedData[dateKey]||[]
+  const src=jobs[idx]
+  if(!src) return
+  // Find next day
+  const d=new Date(dateKey+'T12:00:00')
+  d.setDate(d.getDate()+1)
+  const nextKey=d.toISOString().slice(0,10)
+  if(!schedData[nextKey]) schedData[nextKey]=[]
+  const nextDayJobs=schedData[nextKey]||[]
+  const newJob={id:crypto.randomUUID(),title:src.title,type:src.type,color:src.color,crew:[...src.crew],notes:src.notes,region:src.region,subs:src.subs?src.subs.map(s=>({...s})):[],sort_order:nextDayJobs.length}
+  schedData[nextKey].push(newJob)
+  saveJob(nextKey,newJob)
+  renderSchedule()
+  toast('Job duplicated to next day')
 }
 
 // ── Job Notes Popup ──────────────────────────────────────────────────────────
@@ -2633,17 +2779,31 @@ window.closeJobNote=function(){
 
 window.saveJobNote=function(){
   if(!noteTarget) return
-  const{dateKey,idx}=noteTarget
+  const{dateKey,idx,subIdx}=noteTarget
   const job=(schedData[dateKey]||[])[idx]
   if(!job) return
   const titleInput=document.getElementById('jobNoteTitleInput')
   const typeSelect=document.getElementById('jobNoteTypeSelect')
-  if(titleInput) job.title=titleInput.value.trim()||'UNTITLED'
-  if(typeSelect){
-    job.type=typeSelect.value
-    job.color=JOB_COLORS[typeSelect.value]||DEFAULT_JOB_COLOR
+  const notesVal=document.getElementById('jobNoteText').value.trim()
+
+  if(subIdx!=null&&job.subs&&job.subs[subIdx]){
+    // Editing a sub-job
+    const sub=job.subs[subIdx]
+    if(titleInput) sub.title=titleInput.value.trim().toUpperCase()||'UNTITLED'
+    if(typeSelect){
+      sub.type=typeSelect.value
+      sub.color=JOB_COLORS[typeSelect.value]||DEFAULT_JOB_COLOR
+    }
+    sub.notes=notesVal
+  } else {
+    // Editing the main job
+    if(titleInput) job.title=titleInput.value.trim()||'UNTITLED'
+    if(typeSelect){
+      job.type=typeSelect.value
+      job.color=JOB_COLORS[typeSelect.value]||DEFAULT_JOB_COLOR
+    }
+    job.notes=notesVal
   }
-  job.notes=document.getElementById('jobNoteText').value.trim()
   saveJob(dateKey,job)
   closeJobNote()
   renderSchedule()
@@ -2676,8 +2836,8 @@ function renderCrewPanel(){
   const body=document.getElementById('crewPanelBody')
   let html=''
   regions.forEach(region=>{
-    const supers=CREW_LIST.filter(c=>c.region===region&&c.super)
-    const crew=CREW_LIST.filter(c=>c.region===region&&!c.super)
+    const supers=CREW_LIST.filter(c=>c.region===region&&c.super).sort((a,b)=>a.name.localeCompare(b.name))
+    const crew=CREW_LIST.filter(c=>c.region===region&&!c.super).sort((a,b)=>a.name.localeCompare(b.name))
     if(!supers.length&&!crew.length) return
     html+=`<div style="width:100%;margin-bottom:4px">
       <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;padding-left:2px">${esc(region)}</div>
@@ -2717,7 +2877,6 @@ window.dayDrop=function(e){
   e.preventDefault()
   e.currentTarget.classList.remove('drag-over')
   const targetDate=e.currentTarget.dataset.date
-  const targetRegion=e.currentTarget.dataset.region
   if(!targetDate) return
 
   // If dragging a whole job block
@@ -2728,9 +2887,8 @@ window.dayDrop=function(e){
     // Remove from source day
     srcJobs.splice(dragSource.jobIdx,1)
     deleteJobFromDB(job.id)
-    // Update job region + add to target day
-    job.region=targetRegion
-    job.id=crypto.randomUUID() // new ID for new position
+    // Add to target day
+    job.id=crypto.randomUUID()
     if(!schedData[targetDate]) schedData[targetDate]=[]
     schedData[targetDate].push(job)
     saveJob(targetDate,job)
@@ -2743,11 +2901,68 @@ window.dayDrop=function(e){
 }
 
 // ── Job block drag (move entire job between days) ────────────────────────────
+let edgeDragTimer=null
+let edgeDragActive=false
+function startEdgeDragWatch(){
+  edgeDragActive=true
+  document.addEventListener('dragover',edgeDragCheck)
+  document.addEventListener('dragend',stopEdgeDragWatch)
+  document.addEventListener('drop',stopEdgeDragWatch)
+}
+function stopEdgeDragWatch(){
+  edgeDragActive=false
+  clearTimeout(edgeDragTimer)
+  edgeDragTimer=null
+  document.removeEventListener('dragover',edgeDragCheck)
+  document.removeEventListener('dragend',stopEdgeDragWatch)
+  document.removeEventListener('drop',stopEdgeDragWatch)
+  // Remove edge indicators
+  document.querySelectorAll('.edge-indicator').forEach(e=>e.remove())
+}
+function edgeDragCheck(e){
+  const edgeZone=60 // pixels from screen edge
+  const x=e.clientX
+  const w=window.innerWidth
+  if(x<edgeZone){
+    // Near left edge — go to prev week
+    if(!edgeDragTimer){
+      showEdgeIndicator('left')
+      edgeDragTimer=setTimeout(()=>{
+        edgeDragTimer=null
+        schedNavWeek(-1)
+        // Keep watching
+      },800)
+    }
+  } else if(x>w-edgeZone){
+    // Near right edge — go to next week
+    if(!edgeDragTimer){
+      showEdgeIndicator('right')
+      edgeDragTimer=setTimeout(()=>{
+        edgeDragTimer=null
+        schedNavWeek(1)
+      },800)
+    }
+  } else {
+    clearTimeout(edgeDragTimer)
+    edgeDragTimer=null
+    document.querySelectorAll('.edge-indicator').forEach(e=>e.remove())
+  }
+}
+function showEdgeIndicator(side){
+  document.querySelectorAll('.edge-indicator').forEach(e=>e.remove())
+  const el=document.createElement('div')
+  el.className='edge-indicator'
+  el.style.cssText=`position:fixed;top:0;bottom:0;width:60px;${side}:0;background:linear-gradient(${side==='left'?'to right':'to left'},var(--amber-glow),transparent);z-index:9998;pointer-events:none;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:18px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.1em`
+  el.textContent=side==='left'?'◀':'▶'
+  document.body.appendChild(el)
+}
+
 window.jobBlockDragStart=function(e,dateKey,idx){
   dragSource={type:'jobblock',dateKey,jobIdx:idx}
   e.dataTransfer.setData('text/plain','jobblock')
   e.dataTransfer.effectAllowed='move'
   e.currentTarget.classList.add('dragging-job')
+  startEdgeDragWatch()
 }
 
 // ── Drop crew onto a specific job block ──────────────────────────────────────
@@ -2759,21 +2974,31 @@ window.jobDrop=function(e){
   e.stopPropagation()
   e.currentTarget.classList.remove('drag-over-job')
 
-  // If dragging a job block onto another job — treat as day drop
+  // If dragging a job block onto another job — reorder or move
   if(dragSource&&dragSource.type==='jobblock'){
     const targetDate=e.currentTarget.dataset.date
-    const targetRegion=e.currentTarget.dataset.region
+    const targetIdx=parseInt(e.currentTarget.dataset.idx)
     if(targetDate){
       const srcJobs=schedData[dragSource.dateKey]||[]
       const job=srcJobs[dragSource.jobIdx]
-      if(job){
+      if(!job){dragSource=null;return}
+      if(dragSource.dateKey===targetDate){
+        // Same day — reorder by removing and inserting at target position
+        srcJobs.splice(dragSource.jobIdx,1)
+        const insertAt=targetIdx>dragSource.jobIdx?targetIdx:targetIdx
+        srcJobs.splice(Math.min(insertAt,srcJobs.length),0,job)
+        saveDayOrder(targetDate)
+      } else {
+        // Different day — move
         srcJobs.splice(dragSource.jobIdx,1)
         deleteJobFromDB(job.id)
-        job.region=targetRegion||job.region
         job.id=crypto.randomUUID()
         if(!schedData[targetDate]) schedData[targetDate]=[]
-        schedData[targetDate].push(job)
-        saveJob(targetDate,job)
+        // Insert at target position
+        const destJobs=schedData[targetDate]
+        destJobs.splice(Math.min(targetIdx,destJobs.length),0,job)
+        saveDayOrder(dragSource.dateKey)
+        saveDayOrder(targetDate)
       }
     }
     dragSource=null
@@ -2867,23 +3092,20 @@ const CREW_LIST = [
   { name: 'Lluvia',    email: '', region: 'Middlefield', super: false },
   { name: 'Fredy',     email: '', region: 'Middlefield', super: false },
   { name: 'Jeffery',   email: '', region: 'Middlefield', super: false },
-  { name: 'Edwin P',   email: '', region: 'Middlefield', super: false },
-  { name: 'Mark',      email: '', region: 'Middlefield', super: false },
-  { name: 'Gary',      email: '', region: 'Middlefield', super: false },
   // West Haven (CT) — Supervisors
   { name: 'Jeremy',    email: '', region: 'West Haven', super: true },
   { name: 'Ian',       email: '', region: 'West Haven', super: true },
-  { name: 'Rony',      email: '', region: 'West Haven', super: true },
+  { name: 'Rony',      email: '', region: 'West Haven', super: false },
   { name: 'Jonathan',  email: '', region: 'West Haven', super: true },
   { name: 'Alex',      email: '', region: 'West Haven', super: true },
   { name: 'Tyler',     email: '', region: 'West Haven', super: true },
   { name: 'Steven',    email: '', region: 'West Haven', super: true },
   // West Haven (CT) — Crew
-  { name: 'Cris S',    email: '', region: 'West Haven', super: false },
+  { name: 'Cris S',    email: '', region: 'West Haven', super: true },
   { name: 'Michael',   email: '', region: 'West Haven', super: false },
   { name: 'Orlando',   email: '', region: 'West Haven', super: false },
   { name: 'Edwin F',   email: '', region: 'West Haven', super: false },
-  { name: 'Selene',    email: '', region: 'West Haven', super: false },
+  { name: 'Selene',    email: '', region: 'West Haven', super: true },
   { name: 'Emilio',    email: '', region: 'West Haven', super: false },
   { name: 'Myron',     email: '', region: 'West Haven', super: false },
   // Mass — Supervisors
@@ -2895,12 +3117,12 @@ const CREW_LIST = [
   { name: 'Osaze',     email: '', region: 'NYC', super: true },
   { name: 'Alejandro', email: '', region: 'NYC', super: true },
   // NYC — Crew
-  { name: 'Daniel',    email: '', region: 'NYC', super: false },
+  { name: 'Daniel',    email: '', region: 'NYC', super: true },
   { name: 'Deshawn',   email: '', region: 'NYC', super: false },
   { name: 'Krischen',  email: '', region: 'NYC', super: false },
   { name: 'Ryan',      email: '', region: 'NYC', super: false },
-  // Admin
-  { name: 'Cody Nolan', email: 'cody.nolan006@gmail.com', region: 'Mass', super: true },
+  { name: 'Mark',      email: '', region: 'NYC', super: false },
+  { name: 'Gary',      email: '', region: 'NYC', super: false },
 ]
 
 let dispatchStops = []

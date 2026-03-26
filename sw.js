@@ -1,8 +1,9 @@
 // AMC Service Worker — Offline Support
-const CACHE = 'ctlogs-v1'
+const CACHE = 'amc-v2'
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
+  '/logo.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
 ]
