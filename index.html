@@ -244,18 +244,28 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-shell{padding:16px 8px 200px}
   .sched-header{flex-direction:column;align-items:flex-start;gap:10px}
   .sched-nav{margin-left:0;width:100%;justify-content:space-between}
-  .sched-grid{grid-template-columns:1fr!important;gap:0}
-  .sched-day{border-bottom:1px solid var(--border)}
-  .sched-day-head{display:flex;align-items:center;gap:10px;justify-content:center;padding:8px 12px;cursor:pointer}
-  .sched-day-name{font-size:13px}
+  .sched-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none;border-radius:0}
+  .sched-day{border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
+  .sched-day-head{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none}
+  .sched-day-head::after{content:'▼';font-size:10px;color:var(--text-faint);transition:transform 0.2s}
+  .sched-day.m-collapsed .sched-day-head::after{transform:rotate(-90deg)}
+  .sched-day.m-collapsed .sched-day-body{display:none}
+  .sched-day-name{font-size:14px;font-weight:800}
   .sched-day-date{font-size:12px;margin-top:0}
-  .sched-day-body{padding:6px 8px;min-height:auto}
-  .sched-job-title{font-size:13px;padding:6px 10px}
-  .sched-job-crew{font-size:14px;padding:4px 10px 6px}
-  .sched-add-job{font-size:12px;padding:8px}
+  .sched-day-badge{background:var(--amber);color:var(--on-accent);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:auto}
+  .sched-day-body{padding:8px 10px;min-height:auto;gap:6px}
+  .sched-job{border-radius:var(--radius)}
+  .sched-job-title{font-size:13px;padding:8px 12px}
+  .sched-job-crew{font-size:14px;padding:6px 12px 8px;line-height:1.7}
+  .sched-job-crew .crew-name{padding:2px 0}
+  .sched-add-job{font-size:12px;padding:10px}
+  .sched-add-sub{font-size:11px;padding:6px 12px}
   .crew-panel{left:0!important}
   .crew-panel-body{max-height:30vh}
   .crew-chip{font-size:12px;padding:5px 10px}
+  /* Off section stacked on mobile too */
+  .sched-off-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none}
+  .sched-off-day{border-radius:var(--radius);border:1px solid var(--border);padding:10px 14px}
 }
 
 /* ── SEARCH ── */
@@ -2613,10 +2623,15 @@ function renderSchedule(){
     const isToday=dk===todayStr
     const jobs=(schedData[dk]||[])
 
-    html+=`<div class="sched-day">
-      <div class="sched-day-head" style="${isToday?'background:var(--amber-glow);border-bottom-color:var(--amber)':''}">
-        <div class="sched-day-name" style="${isToday?'color:var(--amber)':''}">${dayNames[i]}</div>
-        <div class="sched-day-date">${fmtDateShort(dt)}</div>
+    const jobCount=jobs.length
+    const mCollapsed=!isToday&&window.innerWidth<=600?'m-collapsed':''
+    html+=`<div class="sched-day ${mCollapsed}">
+      <div class="sched-day-head" style="${isToday?'background:var(--amber-glow);border-bottom-color:var(--amber)':''}" onclick="if(window.innerWidth<=600)this.parentElement.classList.toggle('m-collapsed')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="sched-day-name" style="${isToday?'color:var(--amber)':''}">${dayNames[i]}</div>
+          <div class="sched-day-date">${fmtDateShort(dt)}</div>
+        </div>
+        ${jobCount>0?`<span class="sched-day-badge">${jobCount} job${jobCount!==1?'s':''}</span>`:''}
       </div>
       <div class="sched-day-body" data-date="${dk}"
         ${isAdmin?`ondragover="dayDragOver(event)" ondragleave="dayDragLeave(event)" ondrop="dayDrop(event)"`:''}>`
@@ -2672,7 +2687,7 @@ function renderSchedule(){
   // "OFF" section — show unassigned crew per day
   html+=`<div style="margin-top:20px">
     <div style="font-family:var(--cond);font-size:14px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px">Off / Unassigned</div>
-    <div class="sched-grid" style="min-height:auto">`
+    <div class="sched-grid sched-off-grid" style="min-height:auto">`
   for(let i=0;i<7;i++){
     const dt=new Date(schedWeekStart)
     dt.setDate(dt.getDate()+i)
@@ -2684,7 +2699,7 @@ function renderSchedule(){
       (job.crew||[]).forEach(n=>assigned.add(n.toUpperCase()))
     })
     const off=CREW_LIST.filter(c=>!assigned.has(c.name.toUpperCase()))
-    html+=`<div class="sched-day">
+    html+=`<div class="sched-day sched-off-day">
       <div class="sched-day-head" style="padding:6px">
         <div class="sched-day-name" style="font-size:11px">${dayNames[i]}</div>
       </div>
