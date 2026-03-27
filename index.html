@@ -381,12 +381,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
   position:fixed;top:62px;left:0;right:0;z-index:800;
   background:#1a1200;border-bottom:2px solid var(--amber);
   padding:10px 20px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  display:none;align-items:center;justify-content:space-between;gap:12px;
   font-size:13px;color:var(--amber);
-  transform:translateY(-100%);transition:transform 0.3s ease;
   flex-wrap:wrap;
 }
-.offline-banner.show{transform:translateY(0)}
+.offline-banner.show{display:flex}
 .offline-banner strong{font-family:var(--mono);letter-spacing:0.05em}
 .offline-queue{font-size:12px;color:var(--amber-dim)}
 
@@ -1430,6 +1429,9 @@ function enterApp(){
 
   // Preload locations data in background
   loadAndRender()
+
+  // Start realtime subscriptions for live updates
+  setupRealtime()
 }
 
 window.navigateTo=function(page){
@@ -1518,17 +1520,67 @@ function updateOfflineBanner(){
   }
 }
 
-window.addEventListener('online', ()=>{
+window.addEventListener('online', async()=>{
   isOnline=true
   updateOfflineBanner()
-  flushOfflineQueue()
-  toast('Back online — syncing changes.')
+  await flushOfflineQueue()
+  // Auto-refresh all data when coming back online
+  try{
+    locations=await fetchAll()
+    await resolveAllImageUrls()
+    renderCards()
+    if(currentPage==='schedule'){ await loadSchedule() }
+    toast('Back online — data refreshed.')
+  }catch(e){
+    toast('Back online — sync failed, try refreshing.','err')
+  }
 })
 window.addEventListener('offline', ()=>{
   isOnline=false
   updateOfflineBanner()
   toast('You\'re offline. Changes will be saved locally.')
 })
+
+// Auto-refresh when tab regains focus (catches changes made on other devices)
+let lastRefresh=Date.now()
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&isOnline&&currentProfile&&(Date.now()-lastRefresh>60000)){
+    lastRefresh=Date.now()
+    try{
+      locations=await fetchAll()
+      await resolveAllImageUrls()
+      renderCards()
+      if(currentPage==='schedule') await loadSchedule()
+    }catch(e){}
+  }
+})
+
+// ── REALTIME SUBSCRIPTIONS ────────────────────────────────────────────────────
+let realtimeChannel=null
+function setupRealtime(){
+  if(realtimeChannel) sb.removeChannel(realtimeChannel)
+  let schedDebounce=null, locDebounce=null
+  realtimeChannel=sb.channel('db-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'schedule_data'},()=>{
+      // Debounce rapid schedule changes (e.g. multiple drags)
+      clearTimeout(schedDebounce)
+      schedDebounce=setTimeout(async()=>{
+        if(currentPage==='schedule'){
+          await loadSchedule()
+          toast('Schedule updated by another user.','info')
+        }
+      },800)
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'locations'},()=>{
+      clearTimeout(locDebounce)
+      locDebounce=setTimeout(async()=>{
+        locations=await fetchAll()
+        await resolveAllImageUrls()
+        if(currentPage==='locations') renderCards()
+      },800)
+    })
+    .subscribe()
+}
 
 async function flushOfflineQueue(){
   if(!offlineQueue.length) return
