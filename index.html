@@ -119,7 +119,7 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
   .sidebar{transform:translateX(-100%);width:240px;top:56px;box-shadow:var(--shadow)}
   body.sb-open .sidebar{transform:translateX(0)}
   body.sb-open .sb-backdrop{display:block;position:fixed;inset:0;top:56px;background:rgba(0,0,0,0.4);z-index:189}
-  .page{margin-left:0!important}
+  .page{margin-left:0!important;overflow-x:hidden}
   body.sb-collapsed .sidebar{width:240px}
   .sb-collapse-btn{display:none}
   /* Lock body scroll when any modal overlay is open on mobile */
@@ -232,7 +232,7 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .crew-toggle-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:179;background:var(--amber);color:var(--on-accent);border:none;border-radius:6px 0 0 6px;padding:8px 6px;font-family:var(--cond);font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;writing-mode:vertical-rl;text-orientation:mixed;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:opacity 0.2s}
 .crew-toggle-btn:hover{filter:brightness(1.1)}
 .crew-panel.open~.crew-toggle-btn{opacity:0;pointer-events:none}
-.crew-assign-hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--on-accent);padding:8px 20px;border-radius:20px;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:0.05em;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.3);pointer-events:none;animation:hintPulse 1.5s ease infinite}
+.crew-assign-hint{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--on-accent);padding:8px 20px;border-radius:20px;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:0.05em;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.3);pointer-events:none;animation:hintPulse 1.5s ease infinite;max-width:calc(100vw - 32px);text-align:center}
 @keyframes hintPulse{0%,100%{opacity:1}50%{opacity:0.7}}
 .crew-chip{padding:4px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:600;color:var(--text);cursor:grab;user-select:none;white-space:nowrap;transition:all 0.15s}
 .crew-chip.super{border-color:var(--amber);background:var(--amber-glow);font-weight:800;color:var(--amber)}
@@ -253,7 +253,8 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .home-card{max-width:100%;min-width:0}
   .sched-shell{padding:16px 8px 200px}
   .sched-header{flex-direction:column;align-items:flex-start;gap:10px}
-  .sched-nav{margin-left:0;width:100%;justify-content:space-between}
+  .sched-nav{margin-left:0;width:100%;justify-content:space-between;flex-wrap:wrap}
+  .sched-nav .sched-week-label{min-width:0;font-size:12px;flex:1;text-align:center;order:10;width:100%;margin-top:2px}
   .sched-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none;border-radius:0}
   .sched-day{border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
   .sched-day-head{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none}
@@ -270,11 +271,12 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-job-crew .crew-name{padding:2px 0}
   .sched-add-job{font-size:12px;padding:10px}
   .sched-add-sub{font-size:11px;padding:6px 12px}
-  .crew-panel{top:auto;bottom:0;left:0;right:0;width:100%;height:60vh;border-left:none;border-top:2px solid var(--amber);border-radius:16px 16px 0 0;transform:translateY(100%)}
-  .crew-panel.open{transform:translateY(0)}
-  .crew-toggle-btn{top:auto;bottom:16px;right:16px;writing-mode:horizontal-tb;border-radius:20px;padding:10px 16px;transform:none;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+  .crew-panel{position:fixed;top:auto;bottom:72px;right:12px;left:auto;width:calc(100vw - 24px);max-width:320px;height:auto;max-height:55vh;border-left:none;border-top:none;border:2px solid var(--amber);border-radius:var(--radius-lg);transform:scale(0.9);opacity:0;pointer-events:none;transform-origin:bottom right;box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+  .crew-panel.open{transform:scale(1);opacity:1;pointer-events:auto}
+  .crew-toggle-btn{position:fixed;top:auto;bottom:14px;right:14px;left:auto;width:52px;height:52px;border-radius:50%;padding:0;writing-mode:horizontal-tb;font-size:10px;letter-spacing:0.08em;display:flex;align-items:center;justify-content:center;transform:none;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
   .crew-panel.open~.crew-toggle-btn{opacity:0;pointer-events:none}
-  .crew-panel-body{max-height:none;flex:1}
+  .crew-panel-body{max-height:none;flex:1;overflow-y:auto}
+  .crew-panel-filters{padding:6px 12px}
   .crew-chip{font-size:12px;padding:6px 12px}
   /* Off section stacked on mobile too */
   .sched-off-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none}
@@ -3219,7 +3221,7 @@ function getAllAssignedCrew(){
 }
 
 let crewPanelFilter='all'
-let crewAssignMode=null
+window.crewAssignMode=null
 
 window.toggleCrewPanel=function(){
   const panel=document.getElementById('crewPanel')
@@ -3268,11 +3270,8 @@ window.mobileCrewTap=function(name){
     return
   }
   crewAssignMode=name
-  // Highlight selected chip
-  document.querySelectorAll('.crew-chip').forEach(c=>{
-    c.style.outline=c.textContent.trim()===name?'2px solid var(--amber)':''
-    c.style.outlineOffset=c.textContent.trim()===name?'1px':''
-  })
+  // Close the popup so jobs are visible
+  document.getElementById('crewPanel').classList.remove('open')
   // Show hint
   let hint=document.getElementById('crewAssignHint')
   if(!hint){
@@ -3281,8 +3280,11 @@ window.mobileCrewTap=function(name){
     hint.className='crew-assign-hint'
     document.body.appendChild(hint)
   }
-  hint.textContent='Tap a job to assign '+name
+  hint.textContent='Tap a job to assign '+name+' ✕'
   hint.style.display='block'
+  hint.style.pointerEvents='auto'
+  hint.style.cursor='pointer'
+  hint.onclick=function(){clearCrewAssign()}
 }
 
 function clearCrewAssign(){
