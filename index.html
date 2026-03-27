@@ -241,10 +241,21 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
 @media(max-width:600px){
   .home-grid{flex-direction:column;align-items:center;padding:32px 16px}
   .home-card{max-width:100%;min-width:0}
-  .sched-shell{padding:16px 8px 160px}
-  .sched-grid{grid-template-columns:repeat(7,minmax(130px,1fr))}
-  .crew-panel-body{height:100px}
+  .sched-shell{padding:16px 8px 200px}
+  .sched-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .sched-nav{margin-left:0;width:100%;justify-content:space-between}
+  .sched-grid{grid-template-columns:1fr!important;gap:0}
+  .sched-day{border-bottom:1px solid var(--border)}
+  .sched-day-head{display:flex;align-items:center;gap:10px;justify-content:center;padding:8px 12px;cursor:pointer}
+  .sched-day-name{font-size:13px}
+  .sched-day-date{font-size:12px;margin-top:0}
+  .sched-day-body{padding:6px 8px;min-height:auto}
+  .sched-job-title{font-size:13px;padding:6px 10px}
+  .sched-job-crew{font-size:14px;padding:4px 10px 6px}
+  .sched-add-job{font-size:12px;padding:8px}
   .crew-panel{left:0!important}
+  .crew-panel-body{max-height:30vh}
+  .crew-chip{font-size:12px;padding:5px 10px}
 }
 
 /* ── SEARCH ── */
@@ -727,7 +738,7 @@ if(localStorage.getItem('ctlogs_sidebar')==='collapsed')document.body.classList.
     </button>
     <button class="sb-btn" onclick="navigateTo('locations')">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <span class="sb-label">Locations</span>
+      <span class="sb-label">Field Cards</span>
     </button>
     <button class="sb-btn" id="sbDispatchBtn" onclick="openDispatch()" style="display:none">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -1465,7 +1476,7 @@ function renderHomeCards(){
   }
   html+=`<div class="home-card" onclick="navigateTo('locations')">
     <div class="home-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-    <div class="home-card-title">Locations</div>
+    <div class="home-card-title">Field Cards</div>
     <div class="home-card-desc">Browse field locations, site details, and visit history</div>
   </div>`
   document.getElementById('homeGrid').innerHTML=html
@@ -1545,9 +1556,29 @@ async function flushOfflineQueue(){
 
 // ── SUPABASE DB (with offline queue) ─────────────────────────────────────────
 async function fetchAll(){
-  const {data,error}=await sb.from('locations').select('*').order('created_at',{ascending:false})
-  if(error){toast('DB error: '+error.message,'err');return[]}
-  return data||[]
+  try{
+    const {data,error}=await sb.from('locations').select('*').order('created_at',{ascending:false})
+    if(error){toast('DB error: '+error.message,'err');return getCachedLocations()}
+    // Cache for offline use (strip large dataUrl images to save space)
+    try{
+      const lite=(data||[]).map(loc=>({...loc,images:(loc.images||[]).map(i=>({name:i.name,caption:i.caption,storagePath:i.storagePath}))}))
+      localStorage.setItem('amc_locations_cache',JSON.stringify(lite))
+    }catch(e){}
+    return data||[]
+  }catch(e){
+    console.warn('fetchAll failed, using cache:',e)
+    return getCachedLocations()
+  }
+}
+function getCachedLocations(){
+  try{
+    const cached=localStorage.getItem('amc_locations_cache')
+    if(cached){
+      toast('Offline — showing cached data','err')
+      return JSON.parse(cached)
+    }
+  }catch(e){}
+  return []
 }
 async function upsertLoc(loc){
   if(!isOnline){
@@ -2433,6 +2464,7 @@ window.toggleSchedRegion=function(region){
 async function loadSchedule(){
   schedLoaded=true
   schedWeekStart=getMonday(new Date())
+  let loaded=false
   // Try to load from Supabase
   try{
     const token=(await sb.auth.getSession())?.data?.session?.access_token
@@ -2446,8 +2478,21 @@ async function loadSchedule(){
         if(!schedData[r.date_key]) schedData[r.date_key]=[]
         schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
       })
+      loaded=true
+      // Cache for offline
+      try{localStorage.setItem('amc_schedule_cache',JSON.stringify(schedData))}catch(e){}
     }
-  }catch(e){console.warn('Schedule load failed, using empty:',e)}
+  }catch(e){console.warn('Schedule load failed:',e)}
+  // Fallback to cached schedule
+  if(!loaded){
+    try{
+      const cached=localStorage.getItem('amc_schedule_cache')
+      if(cached){
+        schedData=JSON.parse(cached)
+        toast('Offline — showing cached schedule','err')
+      }
+    }catch(e){}
+  }
   renderSchedule()
 }
 
@@ -2461,6 +2506,8 @@ async function saveJob(dateKey,job){
       body:JSON.stringify(payload)
     })
   }catch(e){console.error('Save job failed:',e)}
+  // Update offline cache
+  try{localStorage.setItem('amc_schedule_cache',JSON.stringify(schedData))}catch(e){}
 }
 
 async function deleteJobFromDB(jobId){
