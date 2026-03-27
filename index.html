@@ -14,7 +14,7 @@
   --amber:#e8a020;--amber-dim:#9e6c0e;--amber-glow:#e8a02030;
   --teal:#2ec4b6;--teal-dim:#1a7a72;--teal-glow:#2ec4b620;
   --red:#e05540;--red-glow:#e0554018;
-  --text:#c8cedc;--text-dim:#6e7585;--text-faint:#353a48;
+  --text:#c8cedc;--text-dim:#8e95a5;--text-faint:#4a5168;
   --mono:'Cascadia Code','Fira Code','Consolas',monospace;--body:'Inter',system-ui,-apple-system,sans-serif;--cond:'Inter',system-ui,-apple-system,sans-serif;
   --on-accent:#0c0d10;
   --radius:6px;--radius-lg:12px;--shadow:0 8px 32px rgba(0,0,0,0.5);
@@ -153,6 +153,8 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .home-card:nth-child(1){animation-delay:0.1s}
 .home-card:nth-child(2){animation-delay:0.25s}
 .home-card:nth-child(3){animation-delay:0.4s}
+.home-card:nth-child(4){animation-delay:0.55s}
+.home-card:nth-child(5){animation-delay:0.7s}
 @keyframes homeCardIn{to{opacity:1;transform:translateY(0)}}
 .home-card:hover{border-color:var(--amber);box-shadow:0 8px 32px var(--amber-glow);transform:translateY(-4px)}
 .home-card:hover .home-icon{color:var(--amber);transform:scale(1.08)}
@@ -216,14 +218,22 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .job-note-popup .popup-title{font-family:var(--cond);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:8px}
 
 /* Bottom crew panel (admin) */
-.crew-panel{position:fixed;bottom:0;left:200px;right:0;z-index:180;background:var(--surface);border-top:2px solid var(--amber);transition:left 0.2s ease;padding:0}
-body.sb-collapsed .crew-panel{left:56px}
-.crew-panel-resize{height:6px;cursor:ns-resize;background:transparent;position:relative;display:flex;align-items:center;justify-content:center}
-.crew-panel-resize::after{content:'';width:40px;height:3px;border-radius:2px;background:var(--border-hi)}
-.crew-panel-handle{height:28px;background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;user-select:none}
-.crew-panel-handle::before{content:'CREW';font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--amber)}
-.crew-panel-handle::after{content:'▲';font-size:10px;color:var(--amber);transition:transform 0.25s}
-.crew-panel-body{padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px;overflow-y:auto;align-content:flex-start;min-height:60px;max-height:40vh}
+.crew-panel{position:fixed;top:62px;right:0;bottom:0;width:280px;z-index:180;background:var(--surface);border-left:2px solid var(--amber);transform:translateX(100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden}
+.crew-panel.open{transform:translateX(0)}
+.crew-panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.crew-panel-title{font-family:var(--cond);font-size:12px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber)}
+.crew-panel-close{background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1}
+.crew-panel-close:hover{background:var(--panel2);color:var(--text)}
+.crew-panel-filters{display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.crew-filter{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-family:var(--cond);font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:all 0.15s}
+.crew-filter:hover{border-color:var(--amber);color:var(--text)}
+.crew-filter.active{background:var(--amber-glow);border-color:var(--amber);color:var(--amber)}
+.crew-panel-body{padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px;overflow-y:auto;align-content:flex-start;flex:1}
+.crew-toggle-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:179;background:var(--amber);color:var(--on-accent);border:none;border-radius:6px 0 0 6px;padding:8px 6px;font-family:var(--cond);font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;writing-mode:vertical-rl;text-orientation:mixed;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:opacity 0.2s}
+.crew-toggle-btn:hover{filter:brightness(1.1)}
+.crew-panel.open~.crew-toggle-btn{opacity:0;pointer-events:none}
+.crew-assign-hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--on-accent);padding:8px 20px;border-radius:20px;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:0.05em;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.3);pointer-events:none;animation:hintPulse 1.5s ease infinite}
+@keyframes hintPulse{0%,100%{opacity:1}50%{opacity:0.7}}
 .crew-chip{padding:4px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:600;color:var(--text);cursor:grab;user-select:none;white-space:nowrap;transition:all 0.15s}
 .crew-chip.super{border-color:var(--amber);background:var(--amber-glow);font-weight:800;color:var(--amber)}
 html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c00}
@@ -260,9 +270,12 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-job-crew .crew-name{padding:2px 0}
   .sched-add-job{font-size:12px;padding:10px}
   .sched-add-sub{font-size:11px;padding:6px 12px}
-  .crew-panel{left:0!important}
-  .crew-panel-body{max-height:30vh}
-  .crew-chip{font-size:12px;padding:5px 10px}
+  .crew-panel{top:auto;bottom:0;left:0;right:0;width:100%;height:60vh;border-left:none;border-top:2px solid var(--amber);border-radius:16px 16px 0 0;transform:translateY(100%)}
+  .crew-panel.open{transform:translateY(0)}
+  .crew-toggle-btn{top:auto;bottom:16px;right:16px;writing-mode:horizontal-tb;border-radius:20px;padding:10px 16px;transform:none;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+  .crew-panel.open~.crew-toggle-btn{opacity:0;pointer-events:none}
+  .crew-panel-body{max-height:none;flex:1}
+  .crew-chip{font-size:12px;padding:6px 12px}
   /* Off section stacked on mobile too */
   .sched-off-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none}
   .sched-off-day{border-radius:var(--radius);border:1px solid var(--border);padding:10px 14px}
@@ -566,9 +579,18 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   .btn{padding:8px 12px;font-size:12px}
   .btn-sm{padding:5px 10px;font-size:11px}
 
-  /* CARDS — full width single column */
-  .cards-grid{grid-template-columns:1fr;gap:12px}
-  .card-desc{-webkit-line-clamp:1}
+  /* CARDS — compact single column */
+  .cards-grid{grid-template-columns:1fr;gap:8px}
+  .card-stripe{height:2px}
+  .card-body{padding:12px 14px 10px}
+  .card-title{font-size:15px;margin-bottom:1px}
+  .card-siteid{margin-bottom:4px}
+  .card-address{font-size:12px;margin-bottom:6px}
+  .card-desc{font-size:12px;-webkit-line-clamp:1;margin-bottom:8px}
+  .card-foot{padding-top:8px}
+  .card-tags .tag{font-size:9px;padding:2px 6px}
+  .visit-badge{font-size:10px;padding:2px 8px}
+  .last-visit{font-size:10px}
 
   /* STATE HEADERS */
   .state-label{font-size:10px;padding:3px 10px}
@@ -615,9 +637,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   .vdetail-foot{padding:12px 16px}
   .vconfirm-bar{margin:0 16px 14px}
 
-  /* CARD THUMBS */
-  .card-thumbs{padding:0 14px 12px}
-  .card-thumb{width:56px;height:46px}
+  /* CARD THUMBS — hide on mobile for compact layout */
+  .card-thumbs{display:none}
 
   /* MODAL BODY PADDING */
   .modal-body{padding:18px 16px}
@@ -753,15 +774,23 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
       <span class="sb-label">Dispatch</span>
     </button>
-    <button class="sb-btn" id="sbNewLocBtn" onclick="openNewLocation()" style="display:none">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      <span class="sb-label">New Location</span>
+    <button class="sb-btn" onclick="navigateTo('contacts')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span class="sb-label">Contacts</span>
     </button>
     <button class="sb-btn" id="sbAdminBtn" onclick="openAdminPanel()" style="display:none">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="sb-label">Users</span>
     </button>
+    <button class="sb-btn" id="sbAuditBtn" onclick="navigateTo('audit')" style="display:none">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="sb-label">Audit Log</span>
+    </button>
     <div class="sb-spacer"></div>
+    <button class="sb-btn" onclick="navigateTo('account')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="sb-label">Account</span>
+    </button>
     <button class="sb-btn sb-collapse-btn" onclick="toggleSidebar()">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span class="sb-label">Collapse</span>
@@ -781,6 +810,7 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
           <input class="search-input" id="searchInput" type="text" placeholder="Search by address, title, tag or keyword…" />
         </div>
         <button class="btn btn-ghost btn-sm" id="collapseAllBtn" onclick="toggleAllGroups()" style="white-space:nowrap">Collapse All</button>
+        <button class="btn btn-primary btn-sm" id="newLocPageBtn" onclick="openNewLocation()" style="display:none;white-space:nowrap">+ New</button>
       </div>
       <div class="stats-row" id="statsRow"></div>
       <div id="mainContent">
@@ -804,10 +834,75 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
       <div id="schedGrid"></div>
     </div>
     <!-- Admin crew panel -->
-    <div class="crew-panel" id="crewPanel" style="display:none">
-      <div class="crew-panel-resize" id="crewPanelResize"></div>
-      <div class="crew-panel-handle" onclick="document.getElementById('crewPanel').classList.toggle('pinned')"></div>
+    <div class="crew-panel" id="crewPanel">
+      <div class="crew-panel-header">
+        <span class="crew-panel-title">Crew</span>
+        <button class="crew-panel-close" onclick="toggleCrewPanel()">✕</button>
+      </div>
+      <div class="crew-panel-filters" id="crewPanelFilters">
+        <button class="crew-filter active" onclick="filterCrewPanel('all',this)">All</button>
+        <button class="crew-filter" onclick="filterCrewPanel('Middlefield',this)">MF</button>
+        <button class="crew-filter" onclick="filterCrewPanel('West Haven',this)">WH</button>
+        <button class="crew-filter" onclick="filterCrewPanel('Mass',this)">MA</button>
+        <button class="crew-filter" onclick="filterCrewPanel('NYC',this)">NYC</button>
+      </div>
       <div class="crew-panel-body" id="crewPanelBody"></div>
+    </div>
+    <button class="crew-toggle-btn" id="crewToggleBtn" style="display:none" onclick="toggleCrewPanel()">CREW</button>
+  </div>
+
+  <!-- AUDIT LOG PAGE -->
+  <div id="auditPage" class="page">
+    <div class="shell" style="max-width:900px;margin:0 auto;padding:24px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div style="font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--text)">Audit Log</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAuditLog()">Refresh</button>
+      </div>
+      <div id="auditLogContent" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+        <div class="loader" style="padding:40px 20px"><div class="spinner"></div>Loading&hellip;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT SHEET PAGE -->
+  <div id="contactPage" class="page">
+    <div class="shell" style="max-width:900px;margin:0 auto;padding:24px 16px">
+      <div style="font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--text);margin-bottom:16px">Contact Sheet</div>
+      <div id="contactSheetContent">
+        <div class="loader" style="padding:40px 20px"><div class="spinner"></div>Loading&hellip;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT PAGE -->
+  <div id="accountPage" class="page">
+    <div class="shell" style="max-width:540px;margin:0 auto;padding:24px 16px">
+      <div style="font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--text);margin-bottom:20px">My Account</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px">
+        <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px">Account Info</div>
+        <div style="margin-bottom:10px"><span style="font-size:12px;color:var(--text-dim)">Email</span><div id="acctEmail" style="font-size:14px;color:var(--text);margin-top:2px"></div></div>
+        <div style="margin-bottom:10px"><span style="font-size:12px;color:var(--text-dim)">Role</span><div id="acctRole" style="margin-top:4px"></div></div>
+        <div><span style="font-size:12px;color:var(--text-dim)">Sector</span><div id="acctSector" style="font-size:14px;color:var(--text);margin-top:2px"></div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px">
+        <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px">Personal Info</div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:4px">Display Name</label>
+          <input type="text" id="acctName" class="auth-input" placeholder="Your name" />
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:4px">Phone Number</label>
+          <input type="tel" id="acctPhone" class="auth-input" placeholder="555-123-4567" />
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAccountInfo()">Save</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px">
+        <div style="font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px">Change Password</div>
+        <input type="password" id="acctNewPw" class="auth-input" placeholder="New password" style="margin-bottom:8px" />
+        <input type="password" id="acctConfirmPw" class="auth-input" placeholder="Confirm new password" style="margin-bottom:10px" />
+        <button class="btn btn-primary btn-sm" onclick="changeAccountPassword()">Update Password</button>
+        <div id="acctPwMsg" class="auth-msg" style="margin-top:8px"></div>
+      </div>
     </div>
   </div>
 
@@ -1351,11 +1446,11 @@ window.doResetPassword=async function(){
 }
 
 window.doLogout=async function(){
-  await sb.auth.signOut()
   currentUser=null; currentProfile=null
   document.getElementById('appScreen').classList.remove('visible')
   document.getElementById('authScreen').style.display='flex'
   switchTab('login')
+  await sb.auth.signOut()
 }
 
 async function loadProfileAndEnter(user){
@@ -1430,6 +1525,7 @@ function enterApp(){
   // Show/hide sidebar buttons
   document.getElementById('sbAdminBtn').style.display=currentProfile.role==='admin'?'':'none'
   document.getElementById('sbDispatchBtn').style.display=currentProfile.role==='admin'?'':'none'
+  document.getElementById('sbAuditBtn').style.display=currentProfile.role==='admin'?'':'none'
 
   // Apply permissions to UI
   applyPermissions()
@@ -1452,6 +1548,10 @@ window.navigateTo=function(page){
 
   // Hide all pages
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  // Hide crew panel when leaving schedule
+  document.getElementById('crewPanel').classList.remove('open')
+  document.getElementById('crewToggleBtn').style.display='none'
+  clearCrewAssign()
 
   currentPage=page
 
@@ -1463,11 +1563,22 @@ window.navigateTo=function(page){
   } else if(page==='schedule'){
     document.getElementById('schedulePage').classList.add('active')
     if(!schedLoaded) loadSchedule()
-    // Show crew panel for admins
-    document.getElementById('crewPanel').style.display=currentProfile?.role==='admin'?'':'none'
+    // Show crew toggle for admins
+    const isSchedAdmin=currentProfile?.role==='admin'
+    document.getElementById('crewToggleBtn').style.display=isSchedAdmin?'':'none'
+    if(!isSchedAdmin) document.getElementById('crewPanel').classList.remove('open')
   } else if(page==='dispatch'){
     document.getElementById('locationsPage').classList.add('active')
     openDispatch()
+  } else if(page==='audit'){
+    document.getElementById('auditPage').classList.add('active')
+    loadAuditLog()
+  } else if(page==='contacts'){
+    document.getElementById('contactPage').classList.add('active')
+    loadContactSheet()
+  } else if(page==='account'){
+    document.getElementById('accountPage').classList.add('active')
+    renderAccountPage()
   }
 }
 
@@ -1491,16 +1602,146 @@ function renderHomeCards(){
     <div class="home-card-title">Field Cards</div>
     <div class="home-card-desc">Browse field locations, site details, and visit history</div>
   </div>`
+  html+=`<div class="home-card" onclick="navigateTo('contacts')">
+    <div class="home-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+    <div class="home-card-title">Contact Sheet</div>
+    <div class="home-card-desc">View team contact info, emails, and phone numbers</div>
+  </div>`
+  if(isAdmin){
+    html+=`<div class="home-card" onclick="navigateTo('audit')">
+      <div class="home-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="home-card-title">Audit Log</div>
+      <div class="home-card-desc">View a log of all user edits and changes</div>
+    </div>`
+  }
   document.getElementById('homeGrid').innerHTML=html
 }
 
 function applyPermissions(){
   const role=currentProfile?.role
-  // Guest: hide new location button, hide edit/delete in detail
   const canWrite=role==='admin'||role==='crew'
-  const isAdmin=role==='admin'
-  document.getElementById('sbNewLocBtn').style.display=canWrite?'':'none'
+  document.getElementById('newLocPageBtn').style.display=canWrite?'':'none'
   // Detail modal buttons visibility handled in renderDetail
+}
+
+// ── AUDIT LOG ──────────────────────────────────────────────────────────────────
+async function logAudit(action, detail=''){
+  if(!currentProfile?.email) return
+  try{
+    await sb.from('audit_log').insert({action,detail,user_email:currentProfile.email})
+  }catch(e){console.warn('Audit log failed:',e)}
+}
+
+async function loadAuditLog(){
+  const el=document.getElementById('auditLogContent')
+  el.innerHTML='<div class="loader" style="padding:40px 20px"><div class="spinner"></div>Loading&hellip;</div>'
+  const{data,error}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(200)
+  if(error){el.innerHTML='<p style="padding:20px;color:var(--red)">Failed to load audit log.</p>';return}
+  if(!data||!data.length){el.innerHTML='<div style="padding:24px;color:var(--text-dim);font-size:13px;text-align:center">No audit entries yet.</div>';return}
+  el.innerHTML=data.map(entry=>{
+    const d=new Date(entry.created_at)
+    const ts=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+    return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline">
+      <span style="font-family:var(--cond);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--amber);white-space:nowrap">${esc(entry.action.replace(/_/g,' '))}</span>
+      <span style="font-size:13px;color:var(--text);flex:1;min-width:120px">${esc(entry.detail||'')}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap">${esc(entry.user_email)}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap">${ts}</span>
+    </div>`
+  }).join('')
+}
+
+// ── CONTACT SHEET ──────────────────────────────────────────────────────────────
+function fmtPhone(raw){
+  if(!raw) return ''
+  const digits=raw.replace(/\D/g,'')
+  if(digits.length===10) return digits.slice(0,3)+'-'+digits.slice(3,6)+'-'+digits.slice(6)
+  if(digits.length===11&&digits[0]==='1') return digits.slice(1,4)+'-'+digits.slice(4,7)+'-'+digits.slice(7)
+  return raw
+}
+
+async function loadContactSheet(){
+  const el=document.getElementById('contactSheetContent')
+  el.innerHTML='<div class="loader" style="padding:40px 20px"><div class="spinner"></div>Loading&hellip;</div>'
+  const{data,error}=await sb.from('profiles').select('*').order('email')
+  if(error){el.innerHTML='<p style="color:var(--red)">Failed to load contacts.</p>';return}
+  const active=(data||[]).filter(p=>p.role&&p.role!=='pending')
+  if(!active.length){el.innerHTML='<div style="color:var(--text-dim);font-size:13px;padding:20px 0">No contacts found.</div>';return}
+
+  // Group by sector
+  const sectors={}
+  active.forEach(p=>{
+    const s=p.sector||'Unassigned'
+    if(!sectors[s]) sectors[s]=[]
+    sectors[s].push(p)
+  })
+  const sectorOrder=['Middlefield','West Haven','Mass','NYC','Unassigned']
+  let html=''
+  sectorOrder.forEach(s=>{
+    const group=sectors[s]
+    if(!group||!group.length) return
+    html+=`<div style="margin-bottom:20px">
+      <div style="font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;padding-left:2px">${esc(s)}</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">`
+    group.forEach(p=>{
+      const displayName=p.display_name||p.email.split('@')[0]
+      const phoneFmt=fmtPhone(p.phone)
+      html+=`<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center">
+        <div style="flex:1;min-width:120px">
+          <div style="font-size:14px;color:var(--text);font-weight:600">${esc(displayName)}</div>
+          <span class="role-badge role-${p.role}" style="font-size:10px;margin-top:3px;display:inline-block">${esc(p.role)}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <a href="mailto:${esc(p.email)}" style="font-size:12px;color:var(--text-dim);text-decoration:none">${esc(p.email)}</a>
+          ${phoneFmt?`<a href="tel:${esc(p.phone)}" style="font-size:13px;color:var(--teal);text-decoration:none;font-family:var(--mono)">${esc(phoneFmt)}</a>`:'<span style="font-size:11px;color:var(--text-faint)">No phone</span>'}
+        </div>
+      </div>`
+    })
+    html+=`</div></div>`
+  })
+  el.innerHTML=html
+}
+
+// ── ACCOUNT PAGE ───────────────────────────────────────────────────────────────
+async function renderAccountPage(){
+  document.getElementById('acctEmail').textContent=currentProfile?.email||''
+  document.getElementById('acctRole').innerHTML=`<span class="role-badge role-${currentProfile?.role||'guest'}">${currentProfile?.role||'guest'}</span>`
+  document.getElementById('acctSector').textContent=currentProfile?.sector||'Not assigned'
+  document.getElementById('acctPwMsg').textContent=''
+  // Fetch fresh profile
+  const{data}=await sb.from('profiles').select('phone,sector,display_name').eq('id',currentUser.id).single()
+  if(data){
+    document.getElementById('acctPhone').value=data.phone||''
+    document.getElementById('acctName').value=data.display_name||''
+    document.getElementById('acctSector').textContent=data.sector||'Not assigned'
+    currentProfile.phone=data.phone||null
+    currentProfile.sector=data.sector||null
+    currentProfile.display_name=data.display_name||null
+  }
+}
+
+window.saveAccountInfo=async function(){
+  const phone=document.getElementById('acctPhone').value.trim()
+  const display_name=document.getElementById('acctName').value.trim()
+  const{error}=await sb.from('profiles').update({phone,display_name}).eq('id',currentUser.id)
+  if(error){toast('Failed to save.','err');return}
+  currentProfile.phone=phone
+  currentProfile.display_name=display_name
+  toast('Info saved.')
+}
+
+window.changeAccountPassword=async function(){
+  const pw=document.getElementById('acctNewPw').value
+  const confirm=document.getElementById('acctConfirmPw').value
+  const msg=document.getElementById('acctPwMsg')
+  msg.textContent=''; msg.className='auth-msg'
+  if(!pw){msg.textContent='Enter a new password.';msg.style.color='var(--red)';return}
+  if(pw!==confirm){msg.textContent='Passwords do not match.';msg.style.color='var(--red)';return}
+  if(pw.length<6){msg.textContent='Password must be at least 6 characters.';msg.style.color='var(--red)';return}
+  const{error}=await sb.auth.updateUser({password:pw})
+  if(error){msg.textContent=error.message;msg.style.color='var(--red)';return}
+  msg.textContent='Password updated successfully.';msg.style.color='var(--teal)'
+  document.getElementById('acctNewPw').value=''
+  document.getElementById('acctConfirmPw').value=''
 }
 
 function showMsg(el,msg,type){
@@ -2057,6 +2298,7 @@ window.saveLoc=async function(){
     await resolveAllImageUrls()
     closeLocModal(true); renderCards()
     toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
+    logAudit(editLocId?'UPDATED_FIELD_CARD':'CREATED_FIELD_CARD',title||addr)
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Location'
 }
@@ -2127,10 +2369,12 @@ function renderDetail(){
 window.confirmDeleteLoc=function(){ document.getElementById('delLocBar').classList.add('show') }
 window.deleteLoc=async function(){
   if(currentProfile?.role!=='admin') return
+  const delTitle=locations.find(l=>l.id===curLocId)?.title||curLocId
   try{
     await deleteLoc_db(curLocId)
     locations=locations.filter(l=>l.id!==curLocId)
     closeDetailModal(); renderCards(); toast('Location deleted.')
+    logAudit('DELETED_FIELD_CARD',delTitle)
   }catch(e){toast('Delete failed: '+e.message,'err')}
 }
 
@@ -2231,6 +2475,7 @@ window.saveVisit=async function(){
     await resolveAllImageUrls()
     closeVisitModal(true); renderDetail(); renderCards()
     toast(editVisitId?'Visit updated.':'Visit logged.')
+    logAudit(editVisitId?'UPDATE_VISIT':'CREATE_VISIT',(loc.title||loc.address||'')+' - '+document.getElementById('vDate').value)
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Visit'
 }
@@ -2242,6 +2487,7 @@ window.deleteVisit=async function(vid){
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
     loc.visits=visits; renderDetail(); renderCards(); toast('Visit deleted.')
+    logAudit('DELETE_VISIT',(loc.title||loc.address||'')+' visit '+vid.slice(0,8))
   }catch(e){toast('Delete failed: '+e.message,'err')}
 }
 
@@ -2253,17 +2499,30 @@ window.openAdminPanel=async function(){
   const {data:profiles,error}=await sb.from('profiles').select('*').order('created_at')
   if(error){document.getElementById('userList').innerHTML='<p style="padding:20px;color:var(--red)">Failed to load users.</p>';return}
   document.getElementById('userList').innerHTML=profiles.map(p=>`
-    <div class="user-row">
-      <div>
+    <div class="user-row" style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center">
+      <div style="flex:1;min-width:180px">
         <div class="user-email">${esc(p.email)}</div>
-        <div style="margin-top:3px"><span class="role-badge role-${p.role}">${esc(p.role)}</span></div>
+        <div style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="role-badge role-${p.role}">${esc(p.role)}</span>
+          ${p.sector?`<span style="font-size:10px;color:var(--text-dim);font-family:var(--cond);letter-spacing:0.06em;text-transform:uppercase">${esc(p.sector)}</span>`:''}
+          ${p.phone?`<span style="font-size:11px;color:var(--teal)">${esc(p.phone)}</span>`:''}
+        </div>
       </div>
-      <select class="user-role-select" onchange="updateUserRole('${p.id}',this.value)" ${p.id===currentUser.id?'disabled title="Cannot change your own role"':''}>
-        <option value="pending" ${p.role==='pending'?'selected':''}>Pending</option>
-        <option value="guest"   ${p.role==='guest'  ?'selected':''}>Guest</option>
-        <option value="crew"    ${p.role==='crew'   ?'selected':''}>Crew</option>
-        <option value="admin"   ${p.role==='admin'  ?'selected':''}>Admin</option>
-      </select>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="user-role-select" onchange="updateUserRole('${p.id}',this.value)" ${p.id===currentUser.id?'disabled title="Cannot change your own role"':''} style="min-width:90px">
+          <option value="pending" ${p.role==='pending'?'selected':''}>Pending</option>
+          <option value="guest"   ${p.role==='guest'  ?'selected':''}>Guest</option>
+          <option value="crew"    ${p.role==='crew'   ?'selected':''}>Crew</option>
+          <option value="admin"   ${p.role==='admin'  ?'selected':''}>Admin</option>
+        </select>
+        <select class="user-role-select" onchange="updateUserSector('${p.id}',this.value)" style="min-width:110px">
+          <option value="" ${!p.sector?'selected':''}>No Sector</option>
+          <option value="Middlefield" ${p.sector==='Middlefield'?'selected':''}>Middlefield</option>
+          <option value="West Haven" ${p.sector==='West Haven'?'selected':''}>West Haven</option>
+          <option value="Mass" ${p.sector==='Mass'?'selected':''}>Mass</option>
+          <option value="NYC" ${p.sector==='NYC'?'selected':''}>NYC</option>
+        </select>
+      </div>
     </div>`).join('')
 }
 window.closeAdminPanel=function(){ document.getElementById('adminOverlay').classList.remove('open') }
@@ -2271,7 +2530,15 @@ window.updateUserRole=async function(userId,role){
   const {error}=await sb.from('profiles').update({role}).eq('id',userId)
   if(error){toast('Failed to update role.','err');return}
   toast('Role updated.')
+  logAudit('UPDATE_ROLE',userId.slice(0,8)+'… → '+role)
   // Refresh list
+  openAdminPanel()
+}
+window.updateUserSector=async function(userId,sector){
+  const{error}=await sb.from('profiles').update({sector:sector||null}).eq('id',userId)
+  if(error){toast('Failed to update sector.','err');return}
+  toast('Sector updated.')
+  logAudit('UPDATE_SECTOR',userId.slice(0,8)+'… → '+(sector||'None'))
   openAdminPanel()
 }
 
@@ -2642,9 +2909,10 @@ function renderSchedule(){
       const _lum=(((_rgb>>16)&0xff)*299+((_rgb>>8)&0xff)*587+(_rgb&0xff)*114)/1000
       const _txtC=_lum>150?'#000':'#fff'
       html+=`<div class="sched-job" data-date="${dk}" data-idx="${ji}"
+        onclick="if(crewAssignMode){assignCrewByTap('${dk}',${ji});return}"
         ${isAdmin?`draggable="true" ondragstart="jobBlockDragStart(event,'${dk}',${ji})"
         ondragover="jobDragOver(event)" ondragleave="jobDragLeave(event)" ondrop="jobDrop(event)"`:''}>`
-      html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="openJobNote('${dk}',${ji},event)">
+      html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="if(crewAssignMode){event.stopPropagation();assignCrewByTap('${dk}',${ji});return}openJobNote('${dk}',${ji},event)">
           <span>${esc(job.title)}</span>
           ${job.notes?'<span class="note-dot"></span>':''}
           ${isAdmin?`<button class="sched-job-del" onclick="event.stopPropagation();deleteJob('${dk}',${ji})" title="Remove job">✕</button>`:''}
@@ -2755,10 +3023,12 @@ window.moveJob=function(dateKey,idx,dir){
 window.deleteJob=function(dateKey,idx){
   const jobs=schedData[dateKey]||[]
   if(idx<0||idx>=jobs.length) return
+  const jobTitle=jobs[idx].title||'Untitled'
   const jobId=jobs[idx].id
   jobs.splice(idx,1)
   deleteJobFromDB(jobId)
   renderSchedule()
+  logAudit('DELETE_JOB',jobTitle+' on '+dateKey)
 }
 
 // ── Sub-jobs (multiple locations in one block) ──────────────────────────────
@@ -2770,6 +3040,7 @@ window.addSubJob=function(dateKey,idx){
   job.subs.push({title:'SUB JOB',type:'OTHER',color:DEFAULT_JOB_COLOR})
   saveJob(dateKey,job)
   renderSchedule()
+  logAudit('ADD_SUB_JOB',job.title+' on '+dateKey)
 }
 window.removeSub=function(dateKey,idx,si){
   const job=(schedData[dateKey]||[])[idx]
@@ -2777,6 +3048,7 @@ window.removeSub=function(dateKey,idx,si){
   job.subs.splice(si,1)
   saveJob(dateKey,job)
   renderSchedule()
+  logAudit('REMOVE_SUB_JOB',job.title+' on '+dateKey)
 }
 window.openSubNote=function(dateKey,idx,si,event){
   const job=(schedData[dateKey]||[])[idx]
@@ -2921,6 +3193,7 @@ window.saveJobNote=function(){
   saveJob(dateKey,job)
   closeJobNote()
   renderSchedule()
+  logAudit('UPDATE_JOB',job.title+' on '+dateKey)
 }
 
 // Close popup on outside click
@@ -2945,26 +3218,92 @@ function getAllAssignedCrew(){
   return assigned
 }
 
+let crewPanelFilter='all'
+let crewAssignMode=null
+
+window.toggleCrewPanel=function(){
+  const panel=document.getElementById('crewPanel')
+  panel.classList.toggle('open')
+  if(!panel.classList.contains('open')) clearCrewAssign()
+}
+
+window.filterCrewPanel=function(region,btn){
+  crewPanelFilter=region
+  document.querySelectorAll('.crew-filter').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  renderCrewPanel()
+}
+
 function renderCrewPanel(){
   const regions=['Middlefield','West Haven','Mass','NYC']
   const body=document.getElementById('crewPanelBody')
+  const isMobile='ontouchstart' in window
   let html=''
-  regions.forEach(region=>{
+  const filteredRegions=crewPanelFilter==='all'?regions:[crewPanelFilter]
+  filteredRegions.forEach(region=>{
     const supers=CREW_LIST.filter(c=>c.region===region&&c.super).sort((a,b)=>a.name.localeCompare(b.name))
     const crew=CREW_LIST.filter(c=>c.region===region&&!c.super).sort((a,b)=>a.name.localeCompare(b.name))
     if(!supers.length&&!crew.length) return
-    html+=`<div style="width:100%;margin-bottom:4px">
-      <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;padding-left:2px">${esc(region)}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">`
-    supers.forEach(c=>{
-      html+=`<span class="crew-chip super" draggable="true" ondragstart="panelDragStart(event,'${esc(c.name.toUpperCase())}')">${esc(c.name.toUpperCase())}</span>`
-    })
-    crew.forEach(c=>{
-      html+=`<span class="crew-chip" draggable="true" ondragstart="panelDragStart(event,'${esc(c.name.toUpperCase())}')">${esc(c.name.toUpperCase())}</span>`
-    })
+    html+=`<div style="width:100%;margin-bottom:8px">
+      <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;padding-left:2px">${esc(region)}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">`
+    const renderChip=(c,cls)=>{
+      const name=c.name.toUpperCase()
+      if(isMobile){
+        html+=`<span class="crew-chip ${cls}" onclick="mobileCrewTap('${esc(name)}')">${esc(name)}</span>`
+      } else {
+        html+=`<span class="crew-chip ${cls}" draggable="true" ondragstart="panelDragStart(event,'${esc(name)}')" onclick="mobileCrewTap('${esc(name)}')">${esc(name)}</span>`
+      }
+    }
+    supers.forEach(c=>renderChip(c,'super'))
+    crew.forEach(c=>renderChip(c,''))
     html+=`</div></div>`
   })
-  body.innerHTML=html||'<span style="color:var(--text-faint);font-size:12px">All crew assigned</span>'
+  body.innerHTML=html||'<span style="color:var(--text-dim);font-size:12px">All crew listed above</span>'
+}
+
+window.mobileCrewTap=function(name){
+  if(crewAssignMode===name){
+    clearCrewAssign()
+    return
+  }
+  crewAssignMode=name
+  // Highlight selected chip
+  document.querySelectorAll('.crew-chip').forEach(c=>{
+    c.style.outline=c.textContent.trim()===name?'2px solid var(--amber)':''
+    c.style.outlineOffset=c.textContent.trim()===name?'1px':''
+  })
+  // Show hint
+  let hint=document.getElementById('crewAssignHint')
+  if(!hint){
+    hint=document.createElement('div')
+    hint.id='crewAssignHint'
+    hint.className='crew-assign-hint'
+    document.body.appendChild(hint)
+  }
+  hint.textContent='Tap a job to assign '+name
+  hint.style.display='block'
+}
+
+function clearCrewAssign(){
+  crewAssignMode=null
+  document.querySelectorAll('.crew-chip').forEach(c=>{c.style.outline='';c.style.outlineOffset=''})
+  const hint=document.getElementById('crewAssignHint')
+  if(hint) hint.style.display='none'
+}
+
+window.assignCrewByTap=function(dateKey,jobIdx){
+  if(!crewAssignMode) return
+  const job=(schedData[dateKey]||[])[jobIdx]
+  if(!job) return
+  const name=crewAssignMode
+  if(!job.crew.includes(name)){
+    job.crew.push(name)
+    saveJob(dateKey,job)
+    logAudit('ASSIGN_CREW',name+' → '+job.title+' on '+dateKey)
+  }
+  clearCrewAssign()
+  renderSchedule()
 }
 
 window.panelDragStart=function(e,name){
@@ -2972,6 +3311,8 @@ window.panelDragStart=function(e,name){
   e.dataTransfer.setData('text/plain',name)
   e.dataTransfer.effectAllowed='move'
   e.target.classList.add('dragging')
+  // Auto-collapse panel so job blocks are accessible
+  document.getElementById('crewPanel').classList.remove('open')
 }
 
 window.crewDragStart=function(e,dateKey,jobIdx,crewIdx){
@@ -3006,6 +3347,7 @@ window.dayDrop=function(e){
     if(!schedData[targetDate]) schedData[targetDate]=[]
     schedData[targetDate].push(job)
     saveJob(targetDate,job)
+    logAudit('MOVE_JOB',job.title+' → '+targetDate)
     dragSource=null
     renderSchedule()
     return
@@ -3138,6 +3480,7 @@ window.jobDrop=function(e){
   if(!targetJob.crew.includes(name)){
     targetJob.crew.push(name)
     saveJob(targetDate,targetJob)
+    logAudit('ASSIGN_CREW',name+' → '+targetJob.title+' on '+targetDate)
   }
 
   dragSource=null
@@ -3147,9 +3490,11 @@ window.jobDrop=function(e){
 window.removeCrewFromJob=function(dateKey,jobIdx,crewIdx){
   const job=(schedData[dateKey]||[])[jobIdx]
   if(!job) return
+  const removedName=job.crew[crewIdx]||'?'
   job.crew.splice(crewIdx,1)
   saveJob(dateKey,job)
   renderSchedule()
+  logAudit('REMOVE_CREW',removedName+' from '+job.title+' on '+dateKey)
 }
 
 // Clean up drag state
@@ -3159,28 +3504,7 @@ document.addEventListener('dragend',function(){
   dragSource=null
 })
 
-// ── Crew panel resize ────────────────────────────────────────────────────────
-;(function(){
-  const resizeEl=document.getElementById('crewPanelResize')
-  const bodyEl=document.getElementById('crewPanelBody')
-  if(!resizeEl||!bodyEl) return
-  let startY,startH
-  const panel=document.getElementById('crewPanel')
-  resizeEl.addEventListener('mousedown',function(e){
-    e.preventDefault()
-    panel.classList.add('pinned')
-    startY=e.clientY
-    startH=bodyEl.offsetHeight
-    document.addEventListener('mousemove',onMove)
-    document.addEventListener('mouseup',onUp)
-  })
-  function onMove(e){
-    const diff=startY-e.clientY
-    const newH=Math.max(60,Math.min(startH+diff,500))
-    bodyEl.style.height=newH+'px'
-  }
-  function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp)}
-})()
+// (crew panel resize removed — now uses side drawer)
 
 // ── DISPATCH ─────────────────────────────────────────────────────────────────
 // Hardcoded crew for now — swap for dynamic user list when ready for rollout
@@ -3485,11 +3809,11 @@ async function buildDispatchHtml(stops, msg){
       </td></tr></table>
     </td></tr>
 
-    <!-- Stops -->
-    ${stopsHtml}
-
     <!-- Message -->
     ${msgHtml}
+
+    <!-- Stops -->
+    ${stopsHtml}
 
     <!-- Footer -->
     <tr><td style="padding:16px 0 0 0;border-top:1px solid #d0d4dc;text-align:center;font-family:Inter,system-ui,Arial,sans-serif;font-size:11px;color:#9ca3af">
@@ -3535,6 +3859,7 @@ window.sendDispatch=async function(){
     const result=await resp.json()
     if(!resp.ok) throw new Error(result.error||'Send failed')
     toast('Dispatch sent!')
+    logAudit('SEND_DISPATCH','To '+recipients.length+' recipient(s)')
     closeDispatch()
   }catch(err){
     toast('Failed to send: '+err.message,'err')
@@ -3562,7 +3887,7 @@ document.getElementById('searchInput').addEventListener('input',()=>renderCards(
 // ── AUTH STATE LISTENER + INIT ────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async(event,session)=>{
   if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session?.user){
-    if(document.getElementById('appScreen').classList.contains('visible')) return
+    if(event==='INITIAL_SESSION'&&document.getElementById('appScreen').classList.contains('visible')) return
     await loadProfileAndEnter(session.user)
   }else if(event==='INITIAL_SESSION'&&!session){
     // No session — show login screen
