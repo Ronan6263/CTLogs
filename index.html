@@ -959,25 +959,27 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
   <div class="overlay" id="sheetImportOverlay">
     <div class="modal" style="max-width:560px">
       <div class="modal-head">
-        <span>Import from Google Sheets</span>
+        <span>Import Schedule</span>
         <button class="modal-close" onclick="closeSheetImport()">✕</button>
       </div>
       <div class="modal-body" style="padding:20px 24px">
         <div style="margin-bottom:16px">
-          <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px">Google Sheets URL</label>
-          <input id="sheetUrl" class="auth-input" placeholder="https://docs.google.com/spreadsheets/d/..." style="width:100%;margin-bottom:4px" />
-          <div style="font-size:11px;color:var(--text-faint)">Sheet must be shared as "Anyone with the link can view"</div>
-        </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px">Sheet tab name <span style="color:var(--text-faint)">(optional, defaults to first tab)</span></label>
-          <input id="sheetTab" class="auth-input" placeholder="Sheet1" style="width:100%" />
+          <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px">Upload exported schedule file</label>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">Export your Google Sheet as <strong>Web Page (.html)</strong> for best results (preserves colors), or as <strong>CSV</strong></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">
+              Choose File
+              <input type="file" id="sheetFile" accept=".html,.htm,.csv,.tsv" onchange="sheetFileSelected()" style="display:none" />
+            </label>
+            <span id="sheetFileName" style="font-size:12px;color:var(--text-faint)">No file selected</span>
+          </div>
         </div>
         <div id="sheetImportStatus" style="font-size:12px;color:var(--text-dim);margin-bottom:12px;display:none"></div>
-        <div id="sheetImportPreview" style="display:none;margin-bottom:16px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-size:11px;background:var(--panel)"></div>
+        <div id="sheetImportPreview" style="display:none;margin-bottom:16px;max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-size:11px;background:var(--panel)"></div>
       </div>
       <div class="modal-foot" style="padding:14px 24px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border)">
         <button class="btn btn-ghost btn-sm" onclick="closeSheetImport()">Cancel</button>
-        <button class="btn btn-primary btn-sm" id="sheetImportBtn" onclick="doSheetImport()">Fetch & Preview</button>
+        <button class="btn btn-primary btn-sm" id="sheetImportBtn" onclick="doSheetImport()" disabled>Preview</button>
       </div>
     </div>
   </div>
@@ -4078,70 +4080,81 @@ document.addEventListener('dragend',function(){
 
 // (crew panel resize removed — now uses side drawer)
 
-// ── GOOGLE SHEETS IMPORT ─────────────────────────────────────────────────────
+// ── SCHEDULE IMPORT (file upload) ────────────────────────────────────────────
 let _sheetImportData=null
+let _sheetFileContent=null
+let _sheetFileType=null
 
 window.openSheetImport=function(){
   document.getElementById('sheetImportOverlay').classList.add('open')
   document.getElementById('sheetImportStatus').style.display='none'
   document.getElementById('sheetImportPreview').style.display='none'
-  document.getElementById('sheetImportBtn').textContent='Fetch & Preview'
+  document.getElementById('sheetImportBtn').textContent='Preview'
+  document.getElementById('sheetImportBtn').disabled=true
+  document.getElementById('sheetFile').value=''
+  document.getElementById('sheetFileName').textContent='No file selected'
   _sheetImportData=null
+  _sheetFileContent=null
+  _sheetFileType=null
 }
 window.closeSheetImport=function(){
   document.getElementById('sheetImportOverlay').classList.remove('open')
   _sheetImportData=null
+  _sheetFileContent=null
+}
+
+window.sheetFileSelected=function(){
+  const file=document.getElementById('sheetFile').files[0]
+  if(!file) return
+  document.getElementById('sheetFileName').textContent=file.name
+  const reader=new FileReader()
+  reader.onload=function(e){
+    _sheetFileContent=e.target.result
+    _sheetFileType=file.name.toLowerCase().endsWith('.csv')||file.name.toLowerCase().endsWith('.tsv')?'csv':'html'
+    document.getElementById('sheetImportBtn').disabled=false
+    document.getElementById('sheetImportBtn').textContent='Preview'
+    document.getElementById('sheetImportPreview').style.display='none'
+    _sheetImportData=null
+  }
+  reader.readAsText(file)
 }
 
 window.doSheetImport=async function(){
-  // If already previewed, this is the "Apply" click
   if(_sheetImportData){
     applySheetImport(_sheetImportData)
     return
   }
 
-  const urlInput=document.getElementById('sheetUrl').value.trim()
-  const tabName=document.getElementById('sheetTab').value.trim()
+  if(!_sheetFileContent){return}
+
   const status=document.getElementById('sheetImportStatus')
   const preview=document.getElementById('sheetImportPreview')
-
-  if(!urlInput){status.style.display='block';status.style.color='var(--red)';status.textContent='Please enter a Google Sheets URL.';return}
-
-  // Extract sheet ID from URL
-  const idMatch=urlInput.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)
-  if(!idMatch){status.style.display='block';status.style.color='var(--red)';status.textContent='Invalid Google Sheets URL.';return}
-  const sheetId=idMatch[1]
-
   status.style.display='block'
   status.style.color='var(--text-dim)'
-  status.textContent='Fetching spreadsheet...'
+  status.textContent='Parsing file...'
 
   try{
-    // Fetch as HTML to preserve cell colors
-    let htmlUrl=`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:html`
-    if(tabName) htmlUrl+=`&sheet=${encodeURIComponent(tabName)}`
+    const parsed=_sheetFileType==='csv'
+      ?parseSheetCsv(_sheetFileContent)
+      :parseSheetHtml(_sheetFileContent)
 
-    const res=await fetch(htmlUrl)
-    if(!res.ok) throw new Error('Could not fetch sheet (status '+res.status+'). Make sure it is shared publicly.')
-    const html=await res.text()
-
-    // Parse the HTML table
-    const parsed=parseSheetHtml(html)
     if(!parsed||!parsed.days.length){
       status.style.color='var(--red)'
-      status.textContent='Could not detect schedule data. Make sure row 1 has day/date headers.'
+      status.textContent='Could not detect schedule data. Make sure the first row has day/date headers (e.g. "MONDAY - MAR 30TH").'
       return
     }
 
     _sheetImportData=parsed
 
-    // Show preview
     status.style.color='var(--teal)'
     status.textContent=`Found ${parsed.days.length} days, ${parsed.totalJobs} job blocks, ${parsed.totalCrew} crew assignments.`
     preview.style.display='block'
     preview.innerHTML=parsed.days.map(d=>{
-      return `<div style="margin-bottom:8px"><strong style="color:var(--amber)">${d.dateLabel}</strong> → ${d.date}<br>`+
-        d.jobs.map(j=>`<span style="display:inline-block;background:${j.color};color:#000;padding:1px 6px;border-radius:3px;margin:2px 0;font-size:10px">${esc(j.title)}</span> <span style="color:var(--text-faint)">(${j.crew.join(', ')||'no crew'})</span>`).join('<br>')+
+      return `<div style="margin-bottom:10px"><strong style="color:var(--amber)">${esc(d.dateLabel)}</strong> <span style="color:var(--text-faint)">→ ${d.date}</span><br>`+
+        d.jobs.map(j=>{
+          const bg=j.color||JOB_COLORS[j.type]||DEFAULT_JOB_COLOR
+          return `<span style="display:inline-block;background:${bg};color:#000;padding:1px 6px;border-radius:3px;margin:2px 0;font-size:10px;font-weight:700">${esc(j.title)}</span> <span style="color:var(--text-faint);font-size:10px">${j.crew.length?j.crew.join(', '):'no crew'}</span>`
+        }).join('<br>')+
         `</div>`
     }).join('')
 
@@ -4152,6 +4165,7 @@ window.doSheetImport=async function(){
   }
 }
 
+// ── Parse HTML export (preserves cell colors) ────────────────────────────────
 function parseSheetHtml(html){
   const parser=new DOMParser()
   const doc=parser.parseFromString(html,'text/html')
@@ -4161,29 +4175,25 @@ function parseSheetHtml(html){
   const rows=[...table.querySelectorAll('tr')]
   if(rows.length<2) return null
 
-  // Row 0 (or first row with day data) = headers with dates
-  const headerCells=[...rows[0].querySelectorAll('td,th')]
+  // Find the header row (first row with day-like text)
+  let headerRowIdx=-1
+  for(let r=0;r<Math.min(rows.length,5);r++){
+    const cells=[...rows[r].querySelectorAll('td,th')]
+    const hasDate=cells.some(c=>/(SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY)/i.test(c.textContent||''))
+    if(hasDate){headerRowIdx=r;break}
+  }
+  if(headerRowIdx<0) return null
 
-  // Parse day headers — find columns with date-like text
-  const dayColumns=[] // {colIdx, dateLabel, date}
+  const headerCells=[...rows[headerRowIdx].querySelectorAll('td,th')]
+  const dayColumns=[]
   headerCells.forEach((cell,i)=>{
-    const text=(cell.textContent||'').trim().toUpperCase()
+    const text=(cell.textContent||'').trim()
     if(!text) return
-    // Match patterns like "SUNDAY - MAR 29TH", "MONDAY - MAR 30TH" etc.
-    const dateMatch=text.match(/(SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY)\s*[-–]\s*(\w+)\s+(\d+)/i)
-    if(dateMatch){
-      const dayName=dateMatch[1]
-      const monthStr=dateMatch[2]
-      const dayNum=parseInt(dateMatch[3])
-      const date=resolveSheetDate(monthStr,dayNum)
-      if(date) dayColumns.push({colIdx:i,dateLabel:text,date:isoDate(date)})
-    }
+    const date=parseDateHeader(text)
+    if(date) dayColumns.push({colIdx:i,dateLabel:text.toUpperCase(),date:isoDate(date)})
   })
-
   if(!dayColumns.length) return null
 
-  // Parse job blocks for each day column
-  // A job block starts with a colored cell and is followed by plain crew-name cells
   const days=[]
   let totalJobs=0,totalCrew=0
 
@@ -4191,30 +4201,26 @@ function parseSheetHtml(html){
     const dayJobs=[]
     let currentJob=null
 
-    for(let r=1;r<rows.length;r++){
+    for(let r=headerRowIdx+1;r<rows.length;r++){
       const cells=[...rows[r].querySelectorAll('td,th')]
       const cell=cells[colIdx]
       if(!cell) continue
       const text=(cell.textContent||'').trim()
       if(!text){
-        // Empty row — end current job block
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
         continue
       }
 
       const bgColor=getCellBgColor(cell)
-      const isColored=bgColor&&bgColor!=='#ffffff'&&bgColor!=='#fff'&&bgColor!=='transparent'&&bgColor!=='rgba(0,0,0,0)'&&bgColor!=='rgb(255, 255, 255)'&&bgColor!=='rgb(255,255,255)'
+      const isColored=isNonWhiteBg(bgColor)
 
       if(isColored){
-        // This is a job title row
         if(currentJob) dayJobs.push(currentJob)
         const jobType=colorToJobType(bgColor)
-        currentJob={title:text.toUpperCase(),color:bgColor,type:jobType,crew:[],notes:getCellNote(cell)}
+        currentJob={title:text.toUpperCase(),color:bgColor,type:jobType,crew:[],notes:''}
         totalJobs++
       } else if(currentJob){
-        // This is a crew name row under the current job
-        // Check it's actually a name (not a number, not too long)
-        if(text.length<30&&!/^\d+$/.test(text)){
+        if(text.length<40&&!/^\d+$/.test(text)){
           currentJob.crew.push(text.toUpperCase())
           totalCrew++
         }
@@ -4227,61 +4233,171 @@ function parseSheetHtml(html){
   return {days,totalJobs,totalCrew}
 }
 
+// ── Parse CSV export (no colors — all non-empty title rows become jobs) ──────
+function parseSheetCsv(csv){
+  const rows=parseCsvRows(csv)
+  if(rows.length<2) return null
+
+  // Find header row
+  let headerRowIdx=-1
+  for(let r=0;r<Math.min(rows.length,5);r++){
+    const hasDate=rows[r].some(c=>/(SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY)/i.test(c))
+    if(hasDate){headerRowIdx=r;break}
+  }
+  if(headerRowIdx<0) return null
+
+  const headerRow=rows[headerRowIdx]
+  const dayColumns=[]
+  headerRow.forEach((text,i)=>{
+    if(!text.trim()) return
+    const date=parseDateHeader(text.trim())
+    if(date) dayColumns.push({colIdx:i,dateLabel:text.trim().toUpperCase(),date:isoDate(date)})
+  })
+  if(!dayColumns.length) return null
+
+  // For CSV we don't have colors. Use heuristic:
+  // A "job title" row is one where the text doesn't match a known crew name.
+  // A "crew" row is one where the text matches a name in CREW_LIST.
+  const crewNames=new Set(CREW_LIST.map(c=>c.name.toUpperCase()))
+
+  const days=[]
+  let totalJobs=0,totalCrew=0
+
+  dayColumns.forEach(({colIdx,dateLabel,date})=>{
+    const dayJobs=[]
+    let currentJob=null
+
+    for(let r=headerRowIdx+1;r<rows.length;r++){
+      const text=(rows[r][colIdx]||'').trim()
+      if(!text){
+        if(currentJob){dayJobs.push(currentJob);currentJob=null}
+        continue
+      }
+
+      const upper=text.toUpperCase()
+      const isCrew=crewNames.has(upper)||crewNames.has(upper.split(/\s/)[0])
+
+      if(!isCrew&&!currentJob){
+        // New job title
+        currentJob={title:upper,color:'',type:'OTHER',crew:[],notes:''}
+        totalJobs++
+      } else if(!isCrew&&currentJob){
+        // Another non-crew text after a job — could be a new job
+        dayJobs.push(currentJob)
+        currentJob={title:upper,color:'',type:'OTHER',crew:[],notes:''}
+        totalJobs++
+      } else if(isCrew&&currentJob){
+        currentJob.crew.push(upper)
+        totalCrew++
+      } else if(isCrew&&!currentJob){
+        // Orphan crew name with no job — skip
+      }
+    }
+    if(currentJob) dayJobs.push(currentJob)
+    days.push({dateLabel,date,jobs:dayJobs})
+  })
+
+  return {days,totalJobs,totalCrew}
+}
+
+function parseCsvRows(csv){
+  const rows=[]
+  let current=[]
+  let inQuote=false
+  let field=''
+  for(let i=0;i<csv.length;i++){
+    const ch=csv[i]
+    if(inQuote){
+      if(ch==='"'&&csv[i+1]==='"'){field+='"';i++}
+      else if(ch==='"'){inQuote=false}
+      else{field+=ch}
+    } else {
+      if(ch==='"'){inQuote=true}
+      else if(ch===','){current.push(field);field=''}
+      else if(ch==='\n'||(ch==='\r'&&csv[i+1]==='\n')){
+        current.push(field);field='';rows.push(current);current=[]
+        if(ch==='\r') i++
+      } else if(ch==='\r'){
+        current.push(field);field='';rows.push(current);current=[]
+      } else {field+=ch}
+    }
+  }
+  if(field||current.length){current.push(field);rows.push(current)}
+  return rows
+}
+
+// ── Shared helpers ───────────────────────────────────────────────────────────
+function parseDateHeader(text){
+  // Match "SUNDAY - MAR 29TH", "MONDAY - MAR 30TH", "WEDNESDAY - APR 1ST" etc.
+  const m=text.match(/(SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY)\s*[-–]\s*(\w+)\s+(\d+)/i)
+  if(!m) return null
+  return resolveSheetDate(m[2],parseInt(m[3]))
+}
+
 function getCellBgColor(cell){
-  // Check inline style first
   const style=cell.getAttribute('style')||''
   const bgMatch=style.match(/background-color\s*:\s*([^;]+)/i)
   if(bgMatch) return bgMatch[1].trim()
-  // Check class-based colors (Google Sheets uses class names too)
-  const cs=getComputedStyle?null:null // Can't compute in parsed doc
+  // Google Sheets HTML uses inline styles; also check for bgcolor attribute
+  const bgAttr=cell.getAttribute('bgcolor')
+  if(bgAttr) return bgAttr
   return ''
 }
 
-function getCellNote(cell){
-  // Google Sheets HTML export doesn't include cell notes
-  // Notes would need the API — return empty for now
-  return ''
+function isNonWhiteBg(bg){
+  if(!bg) return false
+  const c=bg.toLowerCase().replace(/\s/g,'')
+  if(c==='#ffffff'||c==='#fff'||c==='transparent'||c==='rgba(0,0,0,0)') return false
+  if(c==='rgb(255,255,255)'||c==='white') return false
+  return true
 }
 
 function colorToJobType(color){
   if(!color) return 'OTHER'
-  // Normalize to lowercase
   const c=color.toLowerCase().replace(/\s/g,'')
-
-  // Map common Google Sheets colors to job types
-  // Greens → various types
-  if(c.includes('rgb(0,255,0)')||c.includes('#00ff00')||c==='lime'||c.includes('rgb(0,128,0)')) return 'COOLING TOWERS'
-  if(c.includes('rgb(146,208,80)')||c.includes('#92d050')) return 'COOLING TOWERS'
-  if(c.includes('rgb(0,176,80)')||c.includes('#00b050')) return 'COOLING TOWERS'
-  if(c.includes('rgb(0,176,240)')||c.includes('#00b0f0')||c.includes('cyan')||c.includes('rgb(0,255,255)')) return 'WATER WALLS'
-  // Yellow
-  if(c.includes('yellow')||c.includes('rgb(255,255,0)')||c.includes('#ffff00')) return 'SAND FILTER'
-  if(c.includes('rgb(255,192,0)')||c.includes('#ffc000')||c.includes('orange')) return 'OTHER'
-  // Red
-  if(c.includes('red')||c.includes('rgb(255,0,0)')||c.includes('#ff0000')) return 'TOWER CLEAN'
-  // Pink
-  if(c.includes('pink')||c.includes('rgb(255,182,193)')) return 'AHUS'
-
-  // Try to match by checking if it's a green-ish, blue-ish, etc.
   const rgb=parseRgb(c)
   if(rgb){
     const [r,g,b]=rgb
-    if(g>150&&r<100&&b<100) return 'COOLING TOWERS'
-    if(g>150&&r>150&&b<100) return 'SAND FILTER'
+    // Bright green / lime
+    if(g>180&&r<180&&b<100) return 'COOLING TOWERS'
+    // Olive / dark green
+    if(g>100&&r<150&&b<80) return 'COOLING TOWERS'
+    // Yellow-green
+    if(g>180&&r>180&&b<100) return 'SAND FILTER'
+    // Pure yellow
+    if(r>220&&g>220&&b<100) return 'SAND FILTER'
+    // Orange
+    if(r>200&&g>140&&g<200&&b<80) return 'OTHER'
+    // Red
     if(r>200&&g<100&&b<100) return 'TOWER CLEAN'
-    if(b>150&&r<100&&g>100) return 'WATER WALLS'
+    // Cyan / light blue
+    if(b>180&&g>180&&r<120) return 'WATER WALLS'
+    // Blue
+    if(b>150&&r<100&&g<180) return 'WATER WALLS'
+    // Pink
+    if(r>200&&b>150&&g<180) return 'AHUS'
   }
+  // Named color fallback
+  if(c.includes('green')||c==='lime') return 'COOLING TOWERS'
+  if(c.includes('yellow')) return 'SAND FILTER'
+  if(c.includes('red')) return 'TOWER CLEAN'
+  if(c.includes('cyan')||c.includes('aqua')) return 'WATER WALLS'
+  if(c.includes('pink')) return 'AHUS'
   return 'OTHER'
 }
 
 function parseRgb(c){
-  const m=c.match(/rgb\((\d+),(\d+),(\d+)\)/)
+  const m=c.match(/rgb[a]?\((\d+),(\d+),(\d+)/)
   if(m) return [parseInt(m[1]),parseInt(m[2]),parseInt(m[3])]
-  // Hex
-  const h=c.match(/#([0-9a-f]{6})/)
+  const h=c.match(/#([0-9a-f]{6})/i)
   if(h){
     const hex=h[1]
     return [parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)]
+  }
+  const h3=c.match(/#([0-9a-f]{3})$/i)
+  if(h3){
+    const hex=h3[1]
+    return [parseInt(hex[0]+hex[0],16),parseInt(hex[1]+hex[1],16),parseInt(hex[2]+hex[2],16)]
   }
   return null
 }
@@ -4291,11 +4407,9 @@ function resolveSheetDate(monthStr,day){
   const m=monthStr.toUpperCase().slice(0,3)
   const monthIdx=months[m]
   if(monthIdx==null) return null
-  // Determine year — use current year, adjust if the date seems too far back
   const now=new Date()
   let year=now.getFullYear()
   const candidate=new Date(year,monthIdx,day)
-  // If more than 6 months in the past, assume next year
   if(candidate<new Date(now.getTime()-180*86400000)) year++
   return new Date(year,monthIdx,day)
 }
@@ -4305,7 +4419,6 @@ async function applySheetImport(parsed){
   status.style.color='var(--text-dim)'
   status.textContent='Applying schedule...'
 
-  // Navigate to the first day's week
   if(parsed.days.length){
     const firstDate=new Date(parsed.days[0].date+'T12:00:00')
     schedWeekStart=getMonday(firstDate)
@@ -4314,15 +4427,11 @@ async function applySheetImport(parsed){
   for(const day of parsed.days){
     const dk=day.date
     if(!schedData[dk]) schedData[dk]=[]
-
-    // Check if this day already has data — if so, skip or merge
     const existing=schedData[dk]
 
     for(const job of day.jobs){
-      // Check if a job with this title already exists on this day
       const existingJob=existing.find(j=>j.title.toUpperCase()===job.title.toUpperCase())
       if(existingJob){
-        // Merge crew — add any names not already there
         job.crew.forEach(name=>{
           if(!existingJob.crew.some(c=>c.toUpperCase()===name.toUpperCase())){
             existingJob.crew.push(name)
@@ -4353,7 +4462,7 @@ async function applySheetImport(parsed){
   renderSchedule()
   status.style.color='var(--teal)'
   status.textContent='Import complete!'
-  logAudit('IMPORT_SCHEDULE','Imported from Google Sheets — '+parsed.totalJobs+' jobs across '+parsed.days.length+' days')
+  logAudit('IMPORT_SCHEDULE','Imported schedule — '+parsed.totalJobs+' jobs across '+parsed.days.length+' days')
   toast('Schedule imported successfully!')
 
   setTimeout(()=>closeSheetImport(),1500)
