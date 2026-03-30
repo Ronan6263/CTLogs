@@ -203,7 +203,12 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .sched-job-title{padding:6px 10px;font-family:var(--cond);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative}
 .sched-job-title .note-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.5;margin-left:auto;flex-shrink:0}
 .sched-job-crew{padding:4px 10px 6px;font-size:15px;color:var(--text);line-height:1.5;min-height:20px}
-.sched-job-crew .crew-name{display:block;padding:1px 0;position:relative}
+.crew-lead{font-size:11px;font-weight:800;color:var(--amber);padding:2px 6px;margin:0 -4px 2px;border-bottom:1px solid var(--border);font-family:var(--cond);letter-spacing:0.05em;text-transform:uppercase;cursor:pointer}
+.crew-lead-label{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text-dim);margin-right:4px}
+.sched-job-crew .crew-name.is-lead{opacity:0.4;font-size:12px}
+.sched-job-crew .crew-name{display:block;padding:1px 4px;margin:0 -4px;position:relative;border-radius:3px;transition:background 0.12s}
+.sched-job-crew .crew-name:hover{background:rgba(255,255,255,0.08)}
+html.light .sched-job-crew .crew-name:hover{background:rgba(0,0,0,0.05)}
 .sched-job-crew .crew-name.dragging{opacity:0.3}
 
 /* Admin: add-job button */
@@ -290,8 +295,8 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .crew-panel-filters{padding:6px 12px}
   .crew-chip{font-size:12px;padding:6px 12px}
   /* Off section stacked on mobile too */
-  .sched-off-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none}
-  .sched-off-day{border-radius:var(--radius);border:1px solid var(--border);padding:10px 14px}
+  .sched-off-grid{grid-template-columns:1fr!important;gap:2px;background:transparent;border:none}
+  .sched-off-day{border-radius:0;border:none;border-bottom:1px solid var(--border);padding:6px 10px}
 }
 
 /* ── SEARCH ── */
@@ -1865,10 +1870,12 @@ function setupRealtime(){
       locDebounce=setTimeout(async()=>{
         if(isLocalWrite()) return
         const oldUrlMap=buildImageUrlCache(locations)
+        const oldHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,v:(l.visits||[]).length,im:(l.images||[]).length})))
         locations=await fetchAll()
+        const newHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,v:(l.visits||[]).length,im:(l.images||[]).length})))
         applyImageUrlCache(locations,oldUrlMap)
         await resolveAllImageUrls()
-        if(currentPage==='locations') renderCards()
+        if(currentPage==='locations'&&oldHash!==newHash) renderCards()
       },800)
     })
     .subscribe()
@@ -2732,6 +2739,7 @@ function updateCollapseBtn(){
 }
 
 // ── RENDER CARDS ──────────────────────────────────────────────────────────────
+let _lastCardsHtml=''
 function renderCards(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim()
   const filtered=locations.filter(l=>{
@@ -2739,8 +2747,9 @@ function renderCards(){
     return [l.title,l.address,l.description,l.site_id,...(l.tags||[])].join(' ').toLowerCase().includes(q)
   })
   const content=document.getElementById('mainContent')
+  let newHtml=''
   if(!filtered.length){
-    content.innerHTML=`<div class="empty"><div class="eico">⬡</div><h3>${locations.length===0?'No locations yet':'No results'}</h3><p>${locations.length===0?'Add your first cooling tower site to get started.':'Try a different search term.'}</p></div>`
+    newHtml=`<div class="empty"><div class="eico">⬡</div><h3>${locations.length===0?'No locations yet':'No results'}</h3><p>${locations.length===0?'Add your first cooling tower site to get started.':'Try a different search term.'}</p></div>`
   }else{
     const groups={}
     filtered.forEach(loc=>{const state=extractState(loc.address);if(!groups[state])groups[state]=[];groups[state].push(loc)})
@@ -2748,7 +2757,7 @@ function renderCards(){
       const aL=a==='Other'||a==='Unknown', bL=b==='Other'||b==='Unknown'
       if(aL&&!bL) return 1; if(!aL&&bL) return -1; return a.localeCompare(b)
     })
-    content.innerHTML=sortedStates.map(state=>{
+    newHtml=sortedStates.map(state=>{
       const locs=groups[state].slice().sort((a,b)=>{
         const at=(a.title||a.address||'').toLowerCase()
         const bt=(b.title||b.address||'').toLowerCase()
@@ -2795,7 +2804,12 @@ function renderCards(){
         <div class="state-body"><div class="cards-grid">${cardsHtml}</div></div>
       </div>`
     }).join('')
-    updateCollapseBtn()
+  }
+  // Skip DOM update if content hasn't changed (prevents image flicker on mobile)
+  if(newHtml!==_lastCardsHtml){
+    _lastCardsHtml=newHtml
+    content.innerHTML=newHtml
+    if(filtered.length) updateCollapseBtn()
   }
   const totalVisits=locations.reduce((s,l)=>s+(l.visits||[]).length,0)
   const stateCount=new Set(locations.map(l=>extractState(l.address))).size
@@ -2959,7 +2973,8 @@ async function reloadScheduleData(){
       schedData={}
       rows.forEach(r=>{
         if(!schedData[r.date_key]) schedData[r.date_key]=[]
-        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
+        const _meta=parseJobMeta(r.notes||'')
+        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',lead:_meta.lead||null,region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
       })
       try{localStorage.setItem('amc_schedule_cache',JSON.stringify(schedData))}catch(e){}
     }
@@ -2982,7 +2997,8 @@ async function loadSchedule(){
       schedData={}
       rows.forEach(r=>{
         if(!schedData[r.date_key]) schedData[r.date_key]=[]
-        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
+        const _meta=parseJobMeta(r.notes||'')
+        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',lead:_meta.lead||null,region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
       })
       loaded=true
       // Cache for offline
@@ -3004,9 +3020,18 @@ async function loadSchedule(){
 
 async function saveJob(dateKey,job){
   markLocalWrite()
+  // Embed lead into notes for persistence
+  let notesForDB=job.notes||''
+  if(job.lead&&!notesForDB.includes('{{lead:')){
+    notesForDB=notesForDB+(notesForDB?'\n':'')+'{{lead:'+job.lead+'}}'
+  } else if(job.lead){
+    notesForDB=notesForDB.replace(/\{\{lead:[^}]*\}\}/,'{{lead:'+job.lead+'}}')
+  } else {
+    notesForDB=notesForDB.replace(/\{\{lead:[^}]*\}\}\n?/g,'')
+  }
   try{
     const token=(await sb.auth.getSession())?.data?.session?.access_token
-    const payload={id:job.id,date_key:dateKey,title:job.title,job_type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,crew:job.crew||[],notes:job.notes||'',region:job.region||'Middlefield',subs:job.subs||[],sort_order:job.sort_order??999,updated_at:new Date().toISOString()}
+    const payload={id:job.id,date_key:dateKey,title:job.title,job_type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,crew:job.crew||[],notes:notesForDB,region:job.region||'Middlefield',subs:job.subs||[],sort_order:job.sort_order??999,updated_at:new Date().toISOString()}
     await fetch(`${SUPA_URL}/rest/v1/schedule_data`,{
       method:'POST',
       headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
@@ -3120,14 +3145,20 @@ function renderSchedule(){
       }
       html+=`${isAdmin?`<button class="sched-add-sub" onclick="event.stopPropagation();addSubJob('${dk}',${ji})">+ location</button>`:''}
         <div class="sched-job-crew">`
+      // Lead supervisor slot
+      const leadName=job.lead||null
+      if(leadName){
+        html+=`<div class="crew-lead" ${isAdmin?`onclick="event.stopPropagation();toggleLead('${dk}',${ji})"`:''}><span class="crew-lead-label">LEAD</span> ${esc(leadName)}</div>`
+      }
       // Sort: supervisors first, then alphabetically
       const crewSorted=job.crew.map((name,ci)=>{
         const entry=CREW_LIST.find(c=>c.name.toUpperCase()===name.toUpperCase())
         return {name,ci,isSuper:entry?entry.super:false}
       }).sort((a,b)=>(b.isSuper?1:0)-(a.isSuper?1:0)||(a.name.localeCompare(b.name)))
       crewSorted.forEach(({name,ci,isSuper})=>{
-        html+=`<span class="crew-name" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})"`:''}>
-          ${esc(name)}${isAdmin?` <span style="cursor:pointer;color:var(--red);font-size:10px;margin-left:2px" onclick="removeCrewFromJob('${dk}',${ji},${ci})">✕</span>`:''}
+        const isLead=leadName&&name.toUpperCase()===leadName.toUpperCase()
+        html+=`<span class="crew-name${isLead?' is-lead':''}" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})" onclick="event.stopPropagation();${isSuper?`toggleLead('${dk}',${ji},'${esc(name)}')`:''}"`:''}>
+          ${esc(name)}${isAdmin?` <span style="cursor:pointer;color:var(--red);font-size:10px;margin-left:2px" onclick="event.stopPropagation();removeCrewFromJob('${dk}',${ji},${ci})">✕</span>`:''}
         </span>`
       })
       html+=`</div></div>`
@@ -3159,12 +3190,24 @@ function renderSchedule(){
       <div class="sched-day-head" style="padding:6px">
         <div class="sched-day-name" style="font-size:11px">${dayNames[i]}</div>
       </div>
-      <div style="padding:4px 6px;font-size:12px;color:var(--text-dim);line-height:1.6">`
+      <div style="padding:4px 6px;font-size:12px;color:var(--text-dim);line-height:1.4">`
     if(off.length===0){
       html+=`<span style="color:var(--teal);font-size:11px">All assigned</span>`
     } else {
+      const offByRegion={}
       off.forEach(c=>{
-        html+=`<div style="padding:1px 0;${c.super?'font-weight:700;color:var(--amber)':''}">${esc(c.name.toUpperCase())} OFF</div>`
+        const r=c.region||'Other'
+        if(!offByRegion[r]) offByRegion[r]=[]
+        offByRegion[r].push(c)
+      })
+      const regionOrder=['Middlefield','West Haven','Mass','NYC','Other']
+      regionOrder.forEach(region=>{
+        const members=offByRegion[region]
+        if(!members||!members.length) return
+        html+=`<div style="font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-top:4px;margin-bottom:1px">${esc(region)}</div>`
+        members.forEach(c=>{
+          html+=`<div style="padding:1px 0;${c.super?'font-weight:700;color:var(--amber)':''}">${esc(c.name.toUpperCase())} OFF</div>`
+        })
       })
     }
     html+=`</div></div>`
@@ -3254,17 +3297,19 @@ window.openSubNote=function(dateKey,idx,si,event){
   popup.style.top=Math.min(rect.bottom+8,window.innerHeight-200)+'px'
   popup.style.display='block'
 
+  const subLocId=sub.loc_id||null
   if(isAdmin){
     titleEl.innerHTML=`<input id="jobNoteTitleInput" value="${esc(sub.title)}" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-family:var(--cond);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;width:100%;margin-bottom:8px" />
       <select id="jobNoteTypeSelect" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px">
         ${Object.keys(JOB_COLORS).map(t=>`<option value="${t}" ${t===(sub.type||'OTHER')?'selected':''}>${t}</option>`).join('')}
-      </select>`
+      </select>
+      ${buildLocLinkHtml(subLocId)}`
     textarea.value=sub.notes||''
     textarea.readOnly=false
     document.querySelector('#jobNotePopup .btn-primary').style.display=''
     document.querySelector('#jobNotePopup .btn-ghost').textContent='Cancel'
   } else {
-    titleEl.textContent=sub.title
+    titleEl.innerHTML=esc(sub.title)+(subLocId?'<br>'+buildLocLinkHtml(subLocId):'')
     textarea.value=sub.notes||'No notes for this location.'
     textarea.readOnly=true
     document.querySelector('#jobNotePopup .btn-primary').style.display='none'
@@ -3311,6 +3356,30 @@ function duplicateJob(dateKey,idx){
 
 // ── Job Notes Popup ──────────────────────────────────────────────────────────
 let noteTarget=null
+
+// Extract loc_id and lead from notes string ({{loc:UUID}}, {{lead:NAME}})
+function parseJobMeta(notes){
+  if(!notes) return {locId:null,lead:null,cleanNotes:''}
+  const locMatch=notes.match(/\{\{loc:([a-f0-9-]+)\}\}/)
+  const leadMatch=notes.match(/\{\{lead:([^}]+)\}\}/)
+  const locId=locMatch?locMatch[1]:null
+  const lead=leadMatch?leadMatch[1]:null
+  const cleanNotes=notes.replace(/\{\{loc:[a-f0-9-]+\}\}\n?/g,'').replace(/\{\{lead:[^}]+\}\}\n?/g,'').trim()
+  return {locId,lead,cleanNotes}
+}
+// Compat alias
+function parseLocFromNotes(notes){
+  const {locId,cleanNotes}=parseJobMeta(notes)
+  return {locId,cleanNotes}
+}
+
+function buildLocLinkHtml(locId){
+  if(!locId) return ''
+  const loc=locations.find(l=>l.id===locId)
+  const label=loc?esc(loc.title||loc.address||'View Site'):'View Site'
+  return `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navigateTo('locations');setTimeout(()=>openDetail('${locId}'),100)" style="font-size:11px;color:var(--teal);border-color:var(--teal);margin-bottom:8px;width:100%">📍 ${label}</button>`
+}
+
 window.openJobNote=function(dateKey,idx,event){
   const job=(schedData[dateKey]||[])[idx]
   if(!job) return
@@ -3327,19 +3396,22 @@ window.openJobNote=function(dateKey,idx,event){
   popup.style.top=Math.min(rect.bottom+8,window.innerHeight-200)+'px'
   popup.style.display='block'
 
+  const {locId,cleanNotes}=parseLocFromNotes(job.notes)
+
   if(isAdmin){
     // Editable title + type + notes
     titleEl.innerHTML=`<input id="jobNoteTitleInput" value="${esc(job.title)}" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-family:var(--cond);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;width:100%;margin-bottom:8px" />
       <select id="jobNoteTypeSelect" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px">
         ${Object.keys(JOB_COLORS).map(t=>`<option value="${t}" ${t===job.type?'selected':''}>${t}</option>`).join('')}
-      </select>`
-    textarea.value=job.notes||''
+      </select>
+      ${buildLocLinkHtml(locId)}`
+    textarea.value=cleanNotes
     textarea.readOnly=false
     document.querySelector('#jobNotePopup .btn-primary').style.display=''
     document.querySelector('#jobNotePopup .btn-ghost').textContent='Cancel'
   } else {
-    titleEl.textContent=job.title
-    textarea.value=job.notes||'No notes for this job.'
+    titleEl.innerHTML=esc(job.title)+(locId?'<br>'+buildLocLinkHtml(locId):'')
+    textarea.value=cleanNotes||'No notes for this job.'
     textarea.readOnly=true
     document.querySelector('#jobNotePopup .btn-primary').style.display='none'
     document.querySelector('#jobNotePopup .btn-ghost').textContent='Close'
@@ -3376,7 +3448,9 @@ window.saveJobNote=function(){
       job.type=typeSelect.value
       job.color=JOB_COLORS[typeSelect.value]||DEFAULT_JOB_COLOR
     }
-    job.notes=notesVal
+    // Preserve loc_id and lead markers
+    const {locId}=parseLocFromNotes(job.notes)
+    job.notes=notesVal+(locId?'\n{{loc:'+locId+'}}':'')
   }
   saveJob(dateKey,job)
   closeJobNote()
@@ -3577,7 +3651,7 @@ function addLocationToJob(dateKey,jobIdx,locId){
   const job=(schedData[dateKey]||[])[jobIdx]
   if(!job) return
   if(!job.subs) job.subs=[]
-  job.subs.push({title:loc.title||loc.address||'SITE',type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,notes:loc.address||''})
+  job.subs.push({title:loc.title||loc.address||'SITE',type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,notes:loc.address||'',loc_id:locId})
   saveJob(dateKey,job)
   renderSchedule()
   logAudit('ADD_LOCATION_TO_JOB',loc.title+' → '+job.title+' on '+dateKey)
@@ -3646,7 +3720,8 @@ window.dayDrop=function(e){
       if(!schedData[targetDate]) schedData[targetDate]=[]
       const id=crypto.randomUUID()
       const sortOrder=schedData[targetDate].length
-      const job={id,title:loc.title||loc.address||'NEW JOB',type:'OTHER',color:DEFAULT_JOB_COLOR,crew:[],notes:loc.address||'',region:'Middlefield',subs:[],sort_order:sortOrder}
+      const jobNotes=(loc.address?loc.address+'\n':'')+'{{loc:'+locId+'}}'
+      const job={id,title:loc.title||loc.address||'NEW JOB',type:'OTHER',color:DEFAULT_JOB_COLOR,crew:[],notes:jobNotes,region:'Middlefield',subs:[],sort_order:sortOrder}
       schedData[targetDate].push(job)
       saveJob(targetDate,job)
       logAudit('ADD_JOB_FROM_SITE',loc.title+' on '+targetDate)
@@ -3806,10 +3881,28 @@ window.removeCrewFromJob=function(dateKey,jobIdx,crewIdx){
   const job=(schedData[dateKey]||[])[jobIdx]
   if(!job) return
   const removedName=job.crew[crewIdx]||'?'
+  // Clear lead if removing the lead
+  if(job.lead&&removedName.toUpperCase()===job.lead.toUpperCase()) job.lead=null
   job.crew.splice(crewIdx,1)
   saveJob(dateKey,job)
   renderSchedule()
   logAudit('REMOVE_CREW',removedName+' from '+job.title+' on '+dateKey)
+}
+
+window.toggleLead=function(dateKey,jobIdx,name){
+  const job=(schedData[dateKey]||[])[jobIdx]
+  if(!job) return
+  if(!name){
+    // Clicked on the lead bar — unset lead
+    job.lead=null
+  } else if(job.lead&&job.lead.toUpperCase()===name.toUpperCase()){
+    // Clicking same person — unset
+    job.lead=null
+  } else {
+    job.lead=name
+  }
+  saveJob(dateKey,job)
+  renderSchedule()
 }
 
 // Clean up drag state
