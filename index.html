@@ -207,7 +207,6 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .crew-lead-empty{border:1px dashed var(--border);border-radius:3px;margin:4px 6px;text-align:center;cursor:pointer;transition:all 0.15s}
 .crew-lead-empty:hover,.crew-lead.drag-over-lead{border-color:var(--amber);background:var(--amber-glow)}
 .crew-lead-label{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text-dim);margin-right:4px}
-.sched-job-crew .crew-name.is-lead{opacity:0.4;font-size:12px}
 .sched-job-crew .crew-name{display:block;padding:1px 4px;margin:0 -4px;position:relative;border-radius:3px;transition:background 0.12s}
 .sched-job-crew .crew-name:hover{background:rgba(255,255,255,0.08)}
 html.light .sched-job-crew .crew-name:hover{background:rgba(0,0,0,0.05)}
@@ -518,10 +517,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5)}
 .det-desc{color:var(--text);font-size:14px;line-height:1.75;padding:15px;background:var(--panel);border-radius:var(--radius);border-left:3px solid var(--amber);margin-bottom:22px;white-space:pre-wrap}
 .sec-title{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:9px}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.det-images{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
-.det-img-wrap{cursor:pointer;border-radius:6px;overflow:hidden}
-.det-img-wrap img{width:130px;height:100px;object-fit:cover;display:block;border:1px solid var(--border);transition:transform 0.2s}
-.det-img-wrap:hover img{transform:scale(1.04)}
+.det-images{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;transform:translateZ(0)}
+.det-img-wrap{cursor:pointer;border-radius:6px;overflow:hidden;contain:layout style paint}
+.det-img-wrap img{width:130px;height:100px;object-fit:cover;display:block;border:1px solid var(--border)}
+@media(hover:hover){.det-img-wrap img{transition:transform 0.2s}.det-img-wrap:hover img{transform:scale(1.04)}}
 .det-img-cap{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-top:4px;text-align:center;width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .det-section{padding:0 24px}
 hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
@@ -630,7 +629,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   .stat-chip strong{font-size:13px}
 
   /* MODALS — full screen on mobile */
-  .overlay{padding:0}
+  .overlay{padding:0;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(8,9,12,0.95)}
   .overlay.open{align-items:flex-end}
   .modal{max-width:100%;border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto}
   .modal-wide{max-width:100%}
@@ -2505,9 +2504,17 @@ function renderDetail(){
 
   const imgEl=document.getElementById('dImages')
   const imgs=loc.images||[]
-  imgEl.innerHTML=imgs.length
-    ?imgs.map(img=>`<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(imgSrc(img))}')"><img src="${imgSrc(img)}" alt="${esc(img.caption||img.name)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`).join('')
+  const imgHtml=imgs.length
+    ?imgs.map(img=>{
+      const src=imgSrc(img)
+      const sp=img.storagePath||img.name||''
+      return `<div><div class="det-img-wrap" onclick="openLB('${encodeURIComponent(src)}')"><img src="${src}" alt="${esc(img.caption||img.name)}" loading="lazy" data-sp="${esc(sp)}" /></div><div class="det-img-cap">${esc(img.caption||img.name)}</div></div>`
+    }).join('')
     :'<span style="color:var(--text-faint);font-size:13px">No images uploaded.</span>'
+  // Only replace DOM if content actually changed (prevents mobile image flicker)
+  const existingSps=[...imgEl.querySelectorAll('img[data-sp]')].map(i=>i.dataset.sp).join(',')
+  const newSps=imgs.map(i=>i.storagePath||i.name||'').join(',')
+  if(existingSps!==newSps||!imgs.length) imgEl.innerHTML=imgHtml
 
   const vEl=document.getElementById('visitList')
   const visits=[...(loc.visits||[])].sort((a,b)=>{
@@ -3168,8 +3175,9 @@ function renderSchedule(){
         return {name,ci,isSuper:entry?entry.super:false}
       }).sort((a,b)=>(b.isSuper?1:0)-(a.isSuper?1:0)||(a.name.localeCompare(b.name)))
       crewSorted.forEach(({name,ci,isSuper})=>{
-        const isLead=leadName&&name.toUpperCase()===leadName.toUpperCase()
-        html+=`<span class="crew-name${isLead?' is-lead':''}" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})"`:''}>
+        // Skip lead from crew list — already shown in lead slot
+        if(leadName&&name.toUpperCase()===leadName.toUpperCase()) return
+        html+=`<span class="crew-name" style="${isSuper?'font-weight:700;color:var(--amber)':''}" ${isAdmin?`draggable="true" ondragstart="event.stopPropagation();crewDragStart(event,'${dk}',${ji},${ci})"`:''}>
           ${esc(name)}${isAdmin?` <span style="cursor:pointer;color:var(--red);font-size:10px;margin-left:2px" onclick="event.stopPropagation();removeCrewFromJob('${dk}',${ji},${ci})">✕</span>`:''}
         </span>`
       })
