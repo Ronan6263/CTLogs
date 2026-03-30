@@ -4309,7 +4309,8 @@ function parseSheetHtml(html){
 
       if(isColored){
         if(currentJob) dayJobs.push(currentJob)
-        currentJob={title:upper,color:bgColor,type:'OTHER',crew:[],notes:''}
+        const jobType=colorToJobType(bgColor)
+        currentJob={title:upper,color:JOB_COLORS[jobType]||DEFAULT_JOB_COLOR,type:jobType,crew:[],notes:''}
         totalJobs++
       } else if(currentJob){
         if(text.length<40&&!/^\d+$/.test(text)){
@@ -4468,34 +4469,16 @@ function colorToJobType(color){
   if(!color) return 'OTHER'
   const c=color.toLowerCase().replace(/\s/g,'')
   const rgb=parseRgb(c)
-  if(rgb){
-    const [r,g,b]=rgb
-    // Bright green / lime
-    if(g>180&&r<180&&b<100) return 'COOLING TOWERS'
-    // Olive / dark green
-    if(g>100&&r<150&&b<80) return 'COOLING TOWERS'
-    // Yellow-green
-    if(g>180&&r>180&&b<100) return 'SAND FILTER'
-    // Pure yellow
-    if(r>220&&g>220&&b<100) return 'SAND FILTER'
-    // Orange
-    if(r>200&&g>140&&g<200&&b<80) return 'OTHER'
-    // Red
-    if(r>200&&g<100&&b<100) return 'TOWER CLEAN'
-    // Cyan / light blue
-    if(b>180&&g>180&&r<120) return 'WATER WALLS'
-    // Blue
-    if(b>150&&r<100&&g<180) return 'WATER WALLS'
-    // Pink
-    if(r>200&&b>150&&g<180) return 'AHUS'
+  if(!rgb) return 'OTHER'
+  // Find closest match by Euclidean distance to JOB_COLORS
+  let bestType='OTHER',bestDist=Infinity
+  for(const [type,hex] of Object.entries(JOB_COLORS)){
+    const tRgb=parseRgb(hex.toLowerCase())
+    if(!tRgb) continue
+    const dist=Math.sqrt((rgb[0]-tRgb[0])**2+(rgb[1]-tRgb[1])**2+(rgb[2]-tRgb[2])**2)
+    if(dist<bestDist){bestDist=dist;bestType=type}
   }
-  // Named color fallback
-  if(c.includes('green')||c==='lime') return 'COOLING TOWERS'
-  if(c.includes('yellow')) return 'SAND FILTER'
-  if(c.includes('red')) return 'TOWER CLEAN'
-  if(c.includes('cyan')||c.includes('aqua')) return 'WATER WALLS'
-  if(c.includes('pink')) return 'AHUS'
-  return 'OTHER'
+  return bestType
 }
 
 function parseRgb(c){
@@ -4558,7 +4541,7 @@ async function applySheetImport(parsed){
           id,
           title:job.title,
           type:job.type||'OTHER',
-          color:job.color||DEFAULT_JOB_COLOR,
+          color:JOB_COLORS[job.type]||DEFAULT_JOB_COLOR,
           crew:job.crew,
           notes:job.notes||'',
           region:'Middlefield',
