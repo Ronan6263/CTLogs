@@ -175,6 +175,8 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .sched-nav{display:flex;align-items:center;gap:8px;margin-left:auto}
 .sched-nav button{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;color:var(--text-dim);font-family:var(--cond);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s}
 .sched-nav button:hover{border-color:var(--border-hi);color:var(--text);background:var(--panel2)}
+.sched-nav button.active{background:var(--amber-glow);border-color:var(--amber);color:var(--amber)}
+.sched-job.dimmed{opacity:0.2;pointer-events:auto}
 .sched-nav .sched-week-label{font-family:var(--mono);font-size:13px;color:var(--text-dim);min-width:180px;text-align:center}
 
 /* Region section — stacked vertically, collapsible */
@@ -851,6 +853,7 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
           <span class="sched-week-label" id="schedWeekLabel"></span>
           <button onclick="schedNavWeek(1)">Next &rarr;</button>
           <button onclick="schedGoToday()" style="margin-left:8px">Today</button>
+          <button id="myJobsBtn" onclick="toggleMyJobs()" style="margin-left:4px">My Jobs</button>
         </div>
       </div>
       <div id="schedGrid"></div>
@@ -2959,6 +2962,52 @@ window.schedNavWeek=function(dir){
   renderSchedule()
   saveScheduleData()
 }
+let myJobsActive=false
+window.toggleMyJobs=function(){
+  myJobsActive=!myJobsActive
+  const btn=document.getElementById('myJobsBtn')
+  btn.classList.toggle('active',myJobsActive)
+  applyMyJobsFilter()
+}
+
+function getMyName(){
+  const dn=currentProfile?.display_name||''
+  // Try matching display_name (first name) against crew list
+  if(dn){
+    const first=dn.trim().split(/\s+/)[0].toUpperCase()
+    const match=CREW_LIST.find(c=>c.name.toUpperCase()===first)
+    if(match) return match.name.toUpperCase()
+    // Also try full display name
+    const fullMatch=CREW_LIST.find(c=>c.name.toUpperCase()===dn.toUpperCase())
+    if(fullMatch) return fullMatch.name.toUpperCase()
+  }
+  // Fallback: try email prefix
+  const email=currentProfile?.email||''
+  const prefix=email.split('@')[0].toUpperCase()
+  const emailMatch=CREW_LIST.find(c=>c.name.toUpperCase()===prefix)
+  if(emailMatch) return emailMatch.name.toUpperCase()
+  return dn.trim().split(/\s+/)[0].toUpperCase()||prefix
+}
+
+function applyMyJobsFilter(){
+  const jobs=document.querySelectorAll('.sched-job')
+  if(!myJobsActive){
+    jobs.forEach(j=>j.classList.remove('dimmed'))
+    return
+  }
+  const myName=getMyName()
+  jobs.forEach(jobEl=>{
+    const dk=jobEl.dataset.date
+    const idx=parseInt(jobEl.dataset.idx)
+    const job=(schedData[dk]||[])[idx]
+    if(!job){jobEl.classList.remove('dimmed');return}
+    const crewNames=(job.crew||[]).map(n=>n.toUpperCase())
+    const leadName=(job.lead||'').toUpperCase()
+    const hasMe=crewNames.includes(myName)||leadName===myName
+    jobEl.classList.toggle('dimmed',!hasMe)
+  })
+}
+
 window.schedGoToday=function(){
   schedWeekStart=getMonday(new Date())
   renderSchedule()
@@ -3238,6 +3287,9 @@ function renderSchedule(){
 
   // Render crew panel for admins
   if(isAdmin) renderCrewPanel()
+
+  // Re-apply "My Jobs" filter if active
+  if(myJobsActive) applyMyJobsFilter()
 }
 
 // ── Admin: Add / Delete Jobs ─────────────────────────────────────────────────
