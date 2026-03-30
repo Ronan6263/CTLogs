@@ -3538,7 +3538,7 @@ window.renderPanelLocations=function(){
   body.innerHTML=html
 }
 
-let locAssignMode=null
+window.locAssignMode=null
 window.mobileLocTap=function(locId){
   const loc=locations.find(l=>l.id===locId)
   if(!loc) return
@@ -3560,7 +3560,7 @@ window.mobileLocTap=function(locId){
 }
 
 function clearLocAssign(){
-  locAssignMode=null
+  window.locAssignMode=null
   const hint=document.getElementById('crewAssignHint')
   if(hint) hint.style.display='none'
 }
@@ -3636,6 +3636,24 @@ window.dayDrop=function(e){
     logAudit('MOVE_JOB',job.title+' → '+targetDate)
     dragSource=null
     renderSchedule()
+    return
+  }
+
+  // If dragging a location chip onto a day — create a new job from it
+  if(dragSource&&dragSource.type==='location'){
+    const loc=locations.find(l=>l.id===dragSource.locId)
+    if(loc){
+      if(!schedData[targetDate]) schedData[targetDate]=[]
+      const id=crypto.randomUUID()
+      const sortOrder=schedData[targetDate].length
+      const job={id,title:loc.title||loc.address||'NEW JOB',type:'OTHER',color:DEFAULT_JOB_COLOR,crew:[],notes:loc.address||'',region:'Middlefield',subs:[],sort_order:sortOrder}
+      schedData[targetDate].push(job)
+      saveJob(targetDate,job)
+      logAudit('ADD_JOB_FROM_SITE',loc.title+' on '+targetDate)
+      toast('Created job from '+(loc.title||'site'))
+      renderSchedule()
+    }
+    dragSource=null
     return
   }
 
