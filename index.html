@@ -2970,7 +2970,7 @@ const JOB_COLORS={
   'ICE MACHINES':'#5bc0de','DISINFECTION':'#FFCBA4','DWD':'#D2B48C',
   'WATER WALLS':'#4682B4','AHUS':'#FFB6C1','OTHER':'#FFD700'
 }
-const DEFAULT_JOB_COLOR='#808080'
+const DEFAULT_JOB_COLOR='#FFD700'
 
 let schedLoaded=false
 let schedCollapsed=JSON.parse(localStorage.getItem('sched_collapsed')||'{}')
@@ -4261,14 +4261,31 @@ function parseSheetHtml(html){
   dayColumns.forEach(({colIdx,dateLabel,date})=>{
     const dayJobs=[]
     let currentJob=null
+    let stopParsing=false
 
     for(let r=headerRowIdx+1;r<rows.length;r++){
+      if(stopParsing) break
       const cells=[...rows[r].querySelectorAll('td,th')]
       const cell=cells[colIdx]
       if(!cell) continue
       const text=(cell.textContent||'').trim()
       if(!text){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
+        // Two consecutive empty rows = end of schedule data for this column
+        if(r+1<rows.length){
+          const nextCell=[...rows[r+1].querySelectorAll('td,th')][colIdx]
+          if(!nextCell||!(nextCell.textContent||'').trim()){
+            stopParsing=true
+          }
+        }
+        continue
+      }
+
+      // Skip known non-job section headers
+      const upper=text.toUpperCase()
+      if(isNonJobLabel(upper)){
+        if(currentJob){dayJobs.push(currentJob);currentJob=null}
+        stopParsing=true
         continue
       }
 
@@ -4277,12 +4294,11 @@ function parseSheetHtml(html){
 
       if(isColored){
         if(currentJob) dayJobs.push(currentJob)
-        const jobType=colorToJobType(bgColor)
-        currentJob={title:text.toUpperCase(),color:bgColor,type:jobType,crew:[],notes:''}
+        currentJob={title:upper,color:bgColor,type:'OTHER',crew:[],notes:''}
         totalJobs++
       } else if(currentJob){
         if(text.length<40&&!/^\d+$/.test(text)){
-          currentJob.crew.push(text.toUpperCase())
+          currentJob.crew.push(upper)
           totalCrew++
         }
       }
@@ -4330,31 +4346,38 @@ function parseSheetCsv(csv){
   dayColumns.forEach(({colIdx,dateLabel,date})=>{
     const dayJobs=[]
     let currentJob=null
+    let emptyCount=0
 
     for(let r=headerRowIdx+1;r<rows.length;r++){
       const text=(rows[r][colIdx]||'').trim()
       if(!text){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
+        emptyCount++
+        // Two consecutive empty rows = end of schedule data
+        if(emptyCount>=2) break
         continue
       }
+      emptyCount=0
 
       const upper=text.toUpperCase()
+      // Skip known non-job section headers
+      if(isNonJobLabel(upper)){
+        if(currentJob){dayJobs.push(currentJob);currentJob=null}
+        break
+      }
+
       const isCrew=crewNames.has(upper)||crewNames.has(upper.split(/\s/)[0])
 
       if(!isCrew&&!currentJob){
-        // New job title
         currentJob={title:upper,color:'',type:'OTHER',crew:[],notes:''}
         totalJobs++
       } else if(!isCrew&&currentJob){
-        // Another non-crew text after a job — could be a new job
         dayJobs.push(currentJob)
         currentJob={title:upper,color:'',type:'OTHER',crew:[],notes:''}
         totalJobs++
       } else if(isCrew&&currentJob){
         currentJob.crew.push(upper)
         totalCrew++
-      } else if(isCrew&&!currentJob){
-        // Orphan crew name with no job — skip
       }
     }
     if(currentJob) dayJobs.push(currentJob)
@@ -4414,6 +4437,14 @@ function getCellBgColor(cell,cssColorMap){
     }
   }
   return ''
+}
+
+function isNonJobLabel(text){
+  const skip=['PERSONNEL','MIDDLEFIELD','WEST HAVEN','MASS','NYC',
+    'NEW YORK','NEW YORK CITY','NEW YORK CITY CREW','VOLUNTEERS',
+    'OFF','UNASSIGNED','OFF / UNASSIGNED','CREW','LEGEND','KEY',
+    'COLOR KEY','JOB TYPES','NOTES']
+  return skip.includes(text.trim().toUpperCase())
 }
 
 function isNonWhiteBg(bg){
@@ -4517,8 +4548,8 @@ async function applySheetImport(parsed){
         const newJob={
           id,
           title:job.title,
-          type:job.type,
-          color:JOB_COLORS[job.type]||DEFAULT_JOB_COLOR,
+          type:job.type||'OTHER',
+          color:job.color||DEFAULT_JOB_COLOR,
           crew:job.crew,
           notes:job.notes||'',
           region:'Middlefield',
