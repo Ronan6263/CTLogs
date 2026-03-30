@@ -176,6 +176,9 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 .sched-nav button{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;color:var(--text-dim);font-family:var(--cond);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s}
 .sched-nav button:hover{border-color:var(--border-hi);color:var(--text);background:var(--panel2)}
 .sched-nav button.active{background:var(--amber-glow);border-color:var(--amber);color:var(--amber)}
+#clearWeekBtn{color:var(--red);border-color:var(--border)}
+#clearWeekBtn:hover{border-color:var(--red);background:rgba(224,85,64,0.1)}
+#clearWeekBtn.confirming{background:var(--red);color:#fff;border-color:var(--red)}
 .sched-job.dimmed{opacity:0.2;pointer-events:auto}
 .sched-nav .sched-week-label{font-family:var(--mono);font-size:13px;color:var(--text-dim);min-width:180px;text-align:center}
 
@@ -856,6 +859,7 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
           <button onclick="schedGoToday()" style="margin-left:8px">Today</button>
           <button id="myJobsBtn" onclick="toggleMyJobs()" style="margin-left:4px">My Jobs</button>
           <button id="importSheetBtn" onclick="openSheetImport()" style="margin-left:4px;display:none">Import</button>
+          <button id="clearWeekBtn" onclick="confirmClearWeek()" style="margin-left:4px;display:none">Clear Week</button>
         </div>
       </div>
       <div id="schedGrid"></div>
@@ -965,11 +969,11 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
       <div class="modal-body" style="padding:20px 24px">
         <div style="margin-bottom:16px">
           <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px">Upload exported schedule file</label>
-          <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">Export your Google Sheet as <strong>Web Page (.html)</strong> for best results (preserves colors), or as <strong>CSV</strong></div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">In Google Sheets: <strong>File → Download → Web Page (.html, zipped)</strong> — then extract and upload the <code>.html</code> file. Or download as <strong>CSV</strong>. HTML preserves job colors.</div>
           <div style="display:flex;gap:8px;align-items:center">
             <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">
               Choose File
-              <input type="file" id="sheetFile" accept=".html,.htm,.csv,.tsv" onchange="sheetFileSelected()" style="display:none" />
+              <input type="file" id="sheetFile" accept=".html,.htm,.csv,.tsv,.zip" onchange="sheetFileSelected()" style="display:none" />
             </label>
             <span id="sheetFileName" style="font-size:12px;color:var(--text-faint)">No file selected</span>
           </div>
@@ -1638,6 +1642,7 @@ window.navigateTo=function(page){
     const isSchedAdmin=currentProfile?.role==='admin'
     document.getElementById('crewToggleBtn').style.display=isSchedAdmin?'':'none'
     document.getElementById('importSheetBtn').style.display=isSchedAdmin?'':'none'
+    document.getElementById('clearWeekBtn').style.display=isSchedAdmin?'':'none'
     if(!isSchedAdmin) document.getElementById('crewPanel').classList.remove('open')
   } else if(page==='dispatch'){
     document.getElementById('locationsPage').classList.add('active')
@@ -3044,6 +3049,44 @@ window.schedGoToday=function(){
   schedWeekStart=getMonday(new Date())
   renderSchedule()
 }
+
+let _clearWeekTimer=null
+window.confirmClearWeek=function(){
+  const btn=document.getElementById('clearWeekBtn')
+  if(btn.classList.contains('confirming')){
+    // Second click — do the clear
+    clearTimeout(_clearWeekTimer)
+    btn.classList.remove('confirming')
+    btn.textContent='Clear Week'
+    doClearWeek()
+    return
+  }
+  // First click — show confirmation
+  btn.classList.add('confirming')
+  btn.textContent='Confirm Clear?'
+  _clearWeekTimer=setTimeout(()=>{
+    btn.classList.remove('confirming')
+    btn.textContent='Clear Week'
+  },3000)
+}
+
+async function doClearWeek(){
+  const promises=[]
+  for(let i=0;i<7;i++){
+    const dt=new Date(schedWeekStart)
+    dt.setDate(dt.getDate()+i)
+    const dk=isoDate(dt)
+    const jobs=schedData[dk]||[]
+    jobs.forEach(j=>promises.push(deleteJobFromDB(j.id)))
+    schedData[dk]=[]
+  }
+  await Promise.all(promises)
+  renderSchedule()
+  try{localStorage.setItem('amc_schedule_cache',JSON.stringify(schedData))}catch(e){}
+  logAudit('CLEAR_WEEK','Cleared week starting '+isoDate(schedWeekStart))
+  toast('Week cleared.')
+}
+
 window.toggleSchedRegion=function(region){
   schedCollapsed[region]=!schedCollapsed[region]
   localStorage.setItem('sched_collapsed',JSON.stringify(schedCollapsed))
@@ -4172,6 +4215,21 @@ function parseSheetHtml(html){
   const table=doc.querySelector('table')
   if(!table) return null
 
+  // Build CSS class → background-color map from <style> blocks
+  const cssColorMap={}
+  doc.querySelectorAll('style').forEach(styleEl=>{
+    const css=styleEl.textContent||''
+    // Match patterns like .s1{...background-color:#00ff00...} or td.s1{...}
+    const ruleRegex=/\.(\w+)\s*\{([^}]+)\}/g
+    let m
+    while((m=ruleRegex.exec(css))!==null){
+      const cls=m[1]
+      const body=m[2]
+      const bgMatch=body.match(/background-color\s*:\s*([^;]+)/i)
+      if(bgMatch) cssColorMap[cls]=bgMatch[1].trim()
+    }
+  })
+
   const rows=[...table.querySelectorAll('tr')]
   if(rows.length<2) return null
 
@@ -4186,12 +4244,15 @@ function parseSheetHtml(html){
 
   const headerCells=[...rows[headerRowIdx].querySelectorAll('td,th')]
   const dayColumns=[]
-  headerCells.forEach((cell,i)=>{
+  // Only scan first 8 columns (A-H) — ignore PERSONNEL/OFF columns
+  const maxCols=Math.min(headerCells.length,8)
+  for(let i=0;i<maxCols;i++){
+    const cell=headerCells[i]
     const text=(cell.textContent||'').trim()
-    if(!text) return
+    if(!text) continue
     const date=parseDateHeader(text)
     if(date) dayColumns.push({colIdx:i,dateLabel:text.toUpperCase(),date:isoDate(date)})
-  })
+  }
   if(!dayColumns.length) return null
 
   const days=[]
@@ -4211,7 +4272,7 @@ function parseSheetHtml(html){
         continue
       }
 
-      const bgColor=getCellBgColor(cell)
+      const bgColor=getCellBgColor(cell,cssColorMap)
       const isColored=isNonWhiteBg(bgColor)
 
       if(isColored){
@@ -4248,11 +4309,14 @@ function parseSheetCsv(csv){
 
   const headerRow=rows[headerRowIdx]
   const dayColumns=[]
-  headerRow.forEach((text,i)=>{
-    if(!text.trim()) return
-    const date=parseDateHeader(text.trim())
-    if(date) dayColumns.push({colIdx:i,dateLabel:text.trim().toUpperCase(),date:isoDate(date)})
-  })
+  // Only scan columns A-H (indices 0-7) — ignore PERSONNEL/OFF columns beyond that
+  const maxCol=Math.min(headerRow.length,8)
+  for(let i=0;i<maxCol;i++){
+    const text=(headerRow[i]||'').trim()
+    if(!text) continue
+    const date=parseDateHeader(text)
+    if(date) dayColumns.push({colIdx:i,dateLabel:text.toUpperCase(),date:isoDate(date)})
+  }
   if(!dayColumns.length) return null
 
   // For CSV we don't have colors. Use heuristic:
@@ -4334,13 +4398,21 @@ function parseDateHeader(text){
   return resolveSheetDate(m[2],parseInt(m[3]))
 }
 
-function getCellBgColor(cell){
+function getCellBgColor(cell,cssColorMap){
+  // Check inline style first
   const style=cell.getAttribute('style')||''
   const bgMatch=style.match(/background-color\s*:\s*([^;]+)/i)
   if(bgMatch) return bgMatch[1].trim()
-  // Google Sheets HTML uses inline styles; also check for bgcolor attribute
+  // Check bgcolor attribute
   const bgAttr=cell.getAttribute('bgcolor')
   if(bgAttr) return bgAttr
+  // Check CSS class map (for Google Sheets HTML export with external/embedded CSS)
+  if(cssColorMap){
+    const classes=(cell.getAttribute('class')||'').split(/\s+/)
+    for(const cls of classes){
+      if(cssColorMap[cls]) return cssColorMap[cls]
+    }
+  }
   return ''
 }
 
