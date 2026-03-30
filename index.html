@@ -208,8 +208,9 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 
 /* Admin: add-job button */
 .sched-sub-title{border-top:1px solid rgba(255,255,255,0.15);font-size:12px;padding:4px 10px}
-.sched-add-sub{display:block;width:100%;padding:2px 10px;background:transparent;border:none;border-top:1px dashed var(--border);color:var(--text-faint);font-size:10px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;text-align:left;transition:all 0.15s}
-.sched-add-sub:hover{color:var(--amber);background:var(--amber-glow)}
+.sched-add-sub{display:inline-block;width:auto;padding:1px 6px;margin:2px 4px;background:transparent;border:1px dashed var(--border);border-radius:3px;color:var(--text-faint);font-size:9px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;text-align:center;transition:all 0.15s;opacity:0.4}
+.sched-job:hover .sched-add-sub{opacity:0.7}
+.sched-add-sub:hover{color:var(--amber);background:var(--amber-glow);opacity:1;border-color:var(--amber)}
 .sched-add-job{width:100%;padding:6px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius);color:var(--text-faint);font-size:13px;font-family:var(--cond);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all 0.15s;margin-top:auto}
 .sched-add-job:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-glow)}
 
@@ -246,6 +247,10 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
 .crew-chip:active{cursor:grabbing}
 .crew-chip.dragging{opacity:0.3}
 .crew-chip:hover{border-color:var(--amber);background:var(--amber-glow)}
+.loc-chip{padding:4px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text);cursor:grab;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;transition:all 0.15s}
+.loc-chip:hover{border-color:var(--teal);background:rgba(46,196,182,0.1)}
+.loc-chip:active{cursor:grabbing}
+.loc-chip .loc-chip-addr{font-size:9px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Edit job title inline */
 .sched-job-title input{background:transparent;border:none;color:inherit;font:inherit;width:100%;outline:none;padding:0}
@@ -276,7 +281,7 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-job-crew{font-size:14px;padding:6px 12px 8px;line-height:1.7}
   .sched-job-crew .crew-name{padding:2px 0}
   .sched-add-job{font-size:12px;padding:10px}
-  .sched-add-sub{font-size:11px;padding:6px 12px}
+  .sched-add-sub{font-size:10px;padding:3px 8px;opacity:0.5}
   .crew-panel{position:fixed;top:auto;bottom:72px;right:12px;left:auto;width:calc(100vw - 24px);max-width:320px;height:auto;max-height:55vh;border-left:none;border-top:none;border:2px solid var(--amber);border-radius:var(--radius-lg);transform:scale(0.9);opacity:0;pointer-events:none;transform-origin:bottom right;box-shadow:0 12px 40px rgba(0,0,0,0.5)}
   .crew-panel.open{transform:scale(1);opacity:1;pointer-events:auto}
   .crew-toggle-btn{position:fixed;top:auto;bottom:14px;right:14px;left:auto;width:52px;height:52px;border-radius:50%;padding:0;writing-mode:horizontal-tb;font-size:10px;letter-spacing:0.08em;display:flex;align-items:center;justify-content:center;transform:none;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
@@ -847,17 +852,29 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
     <!-- Admin crew panel -->
     <div class="crew-panel" id="crewPanel">
       <div class="crew-panel-header">
-        <span class="crew-panel-title">Crew</span>
-        <button class="crew-panel-close" onclick="toggleCrewPanel()">✕</button>
+        <span class="crew-panel-title" id="crewPanelTitle">Crew</span>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="crew-filter active" id="panelTabCrew" onclick="switchPanelTab('crew')" style="font-size:10px;padding:2px 8px">Crew</button>
+          <button class="crew-filter" id="panelTabLocs" onclick="switchPanelTab('locations')" style="font-size:10px;padding:2px 8px">Sites</button>
+          <button class="crew-panel-close" onclick="toggleCrewPanel()">✕</button>
+        </div>
       </div>
-      <div class="crew-panel-filters" id="crewPanelFilters">
-        <button class="crew-filter active" onclick="filterCrewPanel('all',this)">All</button>
-        <button class="crew-filter" onclick="filterCrewPanel('Middlefield',this)">MF</button>
-        <button class="crew-filter" onclick="filterCrewPanel('West Haven',this)">WH</button>
-        <button class="crew-filter" onclick="filterCrewPanel('Mass',this)">MA</button>
-        <button class="crew-filter" onclick="filterCrewPanel('NYC',this)">NYC</button>
+      <div id="panelCrewSection">
+        <div class="crew-panel-filters" id="crewPanelFilters">
+          <button class="crew-filter active" onclick="filterCrewPanel('all',this)">All</button>
+          <button class="crew-filter" onclick="filterCrewPanel('Middlefield',this)">MF</button>
+          <button class="crew-filter" onclick="filterCrewPanel('West Haven',this)">WH</button>
+          <button class="crew-filter" onclick="filterCrewPanel('Mass',this)">MA</button>
+          <button class="crew-filter" onclick="filterCrewPanel('NYC',this)">NYC</button>
+        </div>
+        <div class="crew-panel-body" id="crewPanelBody"></div>
       </div>
-      <div class="crew-panel-body" id="crewPanelBody"></div>
+      <div id="panelLocsSection" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+        <div style="padding:8px 12px;border-bottom:1px solid var(--border)">
+          <input id="panelLocSearch" type="text" placeholder="Search sites..." oninput="renderPanelLocations()" style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px" />
+        </div>
+        <div class="crew-panel-body" id="panelLocBody" style="flex:1;overflow-y:auto"></div>
+      </div>
     </div>
     <button class="crew-toggle-btn" id="crewToggleBtn" style="display:none" onclick="toggleCrewPanel()">CREW</button>
   </div>
@@ -1824,7 +1841,7 @@ document.addEventListener('visibilitychange',async()=>{
 let realtimeChannel=null
 let lastLocalWrite=0
 function markLocalWrite(){lastLocalWrite=Date.now()}
-function isLocalWrite(){return Date.now()-lastLocalWrite<2000}
+function isLocalWrite(){return Date.now()-lastLocalWrite<5000}
 
 function setupRealtime(){
   if(realtimeChannel) sb.removeChannel(realtimeChannel)
@@ -1836,7 +1853,8 @@ function setupRealtime(){
       schedDebounce=setTimeout(async()=>{
         if(isLocalWrite()) return
         if(currentPage==='schedule'){
-          await loadSchedule()
+          await reloadScheduleData()
+          renderSchedule()
           toast('Schedule updated by another user.','info')
         }
       },800)
@@ -1846,7 +1864,9 @@ function setupRealtime(){
       clearTimeout(locDebounce)
       locDebounce=setTimeout(async()=>{
         if(isLocalWrite()) return
+        const oldUrlMap=buildImageUrlCache(locations)
         locations=await fetchAll()
+        applyImageUrlCache(locations,oldUrlMap)
         await resolveAllImageUrls()
         if(currentPage==='locations') renderCards()
       },800)
@@ -2055,6 +2075,34 @@ async function getSignedImgUrl(storagePath,expiry=3600){
 }
 
 // Resolve display URLs for all images in all locations (call after fetchAll)
+// Cache resolved image URLs so they survive location data refreshes (prevents flicker)
+function buildImageUrlCache(locs){
+  const cache={}
+  for(const loc of locs){
+    for(const img of(loc.images||[])){
+      if(img.storagePath&&img._url) cache[img.storagePath]=img._url
+    }
+    for(const v of(loc.visits||[])){
+      for(const img of(v.images||[])){
+        if(img.storagePath&&img._url) cache[img.storagePath]=img._url
+      }
+    }
+  }
+  return cache
+}
+function applyImageUrlCache(locs,cache){
+  for(const loc of locs){
+    for(const img of(loc.images||[])){
+      if(img.storagePath&&!img._url&&cache[img.storagePath]) img._url=cache[img.storagePath]
+    }
+    for(const v of(loc.visits||[])){
+      for(const img of(v.images||[])){
+        if(img.storagePath&&!img._url&&cache[img.storagePath]) img._url=cache[img.storagePath]
+      }
+    }
+  }
+}
+
 async function resolveAllImageUrls(){
   const promises=[]
   for(const loc of locations){
@@ -2899,6 +2947,25 @@ window.toggleSchedRegion=function(region){
   if(el) el.classList.toggle('collapsed')
 }
 
+// Reload schedule data without resetting week position (for realtime updates)
+async function reloadScheduleData(){
+  try{
+    const token=(await sb.auth.getSession())?.data?.session?.access_token
+    const res=await fetch(`${SUPA_URL}/rest/v1/schedule_data?select=*&order=sort_order.asc,created_at.asc`,{
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Accept':'application/json'}
+    })
+    if(res.ok){
+      const rows=await res.json()
+      schedData={}
+      rows.forEach(r=>{
+        if(!schedData[r.date_key]) schedData[r.date_key]=[]
+        schedData[r.date_key].push({id:r.id,title:r.title,type:r.job_type,color:r.color||JOB_COLORS[r.job_type]||DEFAULT_JOB_COLOR,crew:r.crew||[],notes:r.notes||'',region:r.region||'Middlefield',subs:r.subs||[],sort_order:r.sort_order??999})
+      })
+      try{localStorage.setItem('amc_schedule_cache',JSON.stringify(schedData))}catch(e){}
+    }
+  }catch(e){console.warn('Schedule reload failed:',e)}
+}
+
 // ── Schedule Data (Supabase table: schedule_data) ────────────────────────────
 async function loadSchedule(){
   schedLoaded=true
@@ -2989,6 +3056,14 @@ function renderSchedule(){
   const dayNames=['MON','TUE','WED','THU','FRI','SAT','SUN']
   const todayStr=isoDate(new Date())
 
+  // Preserve mobile collapsed state before re-render
+  const prevCollapsed=new Set()
+  grid.querySelectorAll('.sched-day.m-collapsed').forEach(el=>{
+    const body=el.querySelector('.sched-day-body')
+    if(body&&body.dataset.date) prevCollapsed.add(body.dataset.date)
+  })
+  const hadPrevContent=grid.querySelector('.sched-day')!==null
+
   // Update week label
   const endDate=new Date(schedWeekStart)
   endDate.setDate(endDate.getDate()+6)
@@ -3003,8 +3078,9 @@ function renderSchedule(){
     const jobs=(schedData[dk]||[])
 
     const jobCount=jobs.length
-    const mCollapsed=!isToday&&window.innerWidth<=600?'m-collapsed':''
-    html+=`<div class="sched-day ${mCollapsed}">
+    // On first render: collapse non-today on mobile. On re-render: preserve previous state.
+    const mCollapsed=hadPrevContent?prevCollapsed.has(dk):(!isToday&&window.innerWidth<=600)
+    html+=`<div class="sched-day ${mCollapsed?'m-collapsed':''}">
       <div class="sched-day-head" style="${isToday?'background:var(--amber-glow);border-bottom-color:var(--amber)':''}" onclick="if(window.innerWidth<=600)this.parentElement.classList.toggle('m-collapsed')">
         <div style="display:flex;align-items:center;gap:10px">
           <div class="sched-day-name" style="${isToday?'color:var(--amber)':''}">${dayNames[i]}</div>
@@ -3021,10 +3097,10 @@ function renderSchedule(){
       const _lum=(((_rgb>>16)&0xff)*299+((_rgb>>8)&0xff)*587+(_rgb&0xff)*114)/1000
       const _txtC=_lum>150?'#000':'#fff'
       html+=`<div class="sched-job" data-date="${dk}" data-idx="${ji}"
-        onclick="if(crewAssignMode){assignCrewByTap('${dk}',${ji});return}"
+        onclick="if(locAssignMode){assignLocByTap('${dk}',${ji});return}if(crewAssignMode){assignCrewByTap('${dk}',${ji});return}"
         ${isAdmin?`draggable="true" ondragstart="jobBlockDragStart(event,'${dk}',${ji})"
         ondragover="jobDragOver(event)" ondragleave="jobDragLeave(event)" ondrop="jobDrop(event)"`:''}>`
-      html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="if(crewAssignMode){event.stopPropagation();assignCrewByTap('${dk}',${ji});return}openJobNote('${dk}',${ji},event)">
+      html+=`<div class="sched-job-title" style="background:${bgColor};color:${_txtC}" onclick="if(locAssignMode){event.stopPropagation();assignLocByTap('${dk}',${ji});return}if(crewAssignMode){event.stopPropagation();assignCrewByTap('${dk}',${ji});return}openJobNote('${dk}',${ji},event)">
           <span>${esc(job.title)}</span>
           ${job.notes?'<span class="note-dot"></span>':''}
           ${isAdmin?`<button class="sched-job-del" onclick="event.stopPropagation();deleteJob('${dk}',${ji})" title="Remove job">✕</button>`:''}
@@ -3418,6 +3494,104 @@ window.assignCrewByTap=function(dateKey,jobIdx){
   renderSchedule()
 }
 
+// ── Panel tab switching (Crew / Sites) ──────────────────────────────────────
+let panelTab='crew'
+window.switchPanelTab=function(tab){
+  panelTab=tab
+  document.getElementById('panelCrewSection').style.display=tab==='crew'?'':'none'
+  const locsSection=document.getElementById('panelLocsSection')
+  locsSection.style.display=tab==='locations'?'flex':'none'
+  document.getElementById('panelTabCrew').classList.toggle('active',tab==='crew')
+  document.getElementById('panelTabLocs').classList.toggle('active',tab==='locations')
+  document.getElementById('crewPanelTitle').textContent=tab==='crew'?'Crew':'Sites'
+  if(tab==='locations') renderPanelLocations()
+}
+
+window.renderPanelLocations=function(){
+  const body=document.getElementById('panelLocBody')
+  const q=(document.getElementById('panelLocSearch')?.value||'').toLowerCase().trim()
+  const filtered=locations.filter(l=>{
+    if(!q) return true
+    return [l.title,l.address,l.site_id,...(l.tags||[])].join(' ').toLowerCase().includes(q)
+  }).sort((a,b)=>(a.title||'').localeCompare(b.title||''))
+  const isMobile='ontouchstart' in window
+  let html=''
+  if(!filtered.length){
+    html='<span style="color:var(--text-dim);font-size:12px">No matching sites</span>'
+  } else {
+    filtered.forEach(loc=>{
+      const title=esc(loc.title||loc.address||'Untitled')
+      const addr=loc.address?esc(loc.address):''
+      if(isMobile){
+        html+=`<div class="loc-chip" onclick="mobileLocTap('${loc.id}')">
+          <div>${title}</div>
+          ${addr?`<div class="loc-chip-addr">${addr}</div>`:''}
+        </div>`
+      } else {
+        html+=`<div class="loc-chip" draggable="true" ondragstart="locChipDragStart(event,'${loc.id}')" onclick="mobileLocTap('${loc.id}')">
+          <div>${title}</div>
+          ${addr?`<div class="loc-chip-addr">${addr}</div>`:''}
+        </div>`
+      }
+    })
+  }
+  body.innerHTML=html
+}
+
+let locAssignMode=null
+window.mobileLocTap=function(locId){
+  const loc=locations.find(l=>l.id===locId)
+  if(!loc) return
+  if(locAssignMode===locId){clearLocAssign();return}
+  locAssignMode=locId
+  document.getElementById('crewPanel').classList.remove('open')
+  let hint=document.getElementById('crewAssignHint')
+  if(!hint){
+    hint=document.createElement('div')
+    hint.id='crewAssignHint'
+    hint.className='crew-assign-hint'
+    document.body.appendChild(hint)
+  }
+  hint.textContent='Tap a job to add '+(loc.title||'site')+' as sub-location ✕'
+  hint.style.display='block'
+  hint.style.pointerEvents='auto'
+  hint.style.cursor='pointer'
+  hint.onclick=function(){clearLocAssign()}
+}
+
+function clearLocAssign(){
+  locAssignMode=null
+  const hint=document.getElementById('crewAssignHint')
+  if(hint) hint.style.display='none'
+}
+
+window.assignLocByTap=function(dateKey,jobIdx){
+  if(!locAssignMode) return
+  addLocationToJob(dateKey,jobIdx,locAssignMode)
+  clearLocAssign()
+}
+
+function addLocationToJob(dateKey,jobIdx,locId){
+  const loc=locations.find(l=>l.id===locId)
+  if(!loc) return
+  const job=(schedData[dateKey]||[])[jobIdx]
+  if(!job) return
+  if(!job.subs) job.subs=[]
+  job.subs.push({title:loc.title||loc.address||'SITE',type:job.type||'OTHER',color:job.color||DEFAULT_JOB_COLOR,notes:loc.address||''})
+  saveJob(dateKey,job)
+  renderSchedule()
+  logAudit('ADD_LOCATION_TO_JOB',loc.title+' → '+job.title+' on '+dateKey)
+  toast('Added '+esc(loc.title||'site')+' to '+esc(job.title))
+}
+
+window.locChipDragStart=function(e,locId){
+  dragSource={type:'location',locId}
+  e.dataTransfer.setData('text/plain','location:'+locId)
+  e.dataTransfer.effectAllowed='copy'
+  e.target.style.opacity='0.4'
+  document.getElementById('crewPanel').classList.remove('open')
+}
+
 window.panelDragStart=function(e,name){
   dragSource={type:'panel',name}
   e.dataTransfer.setData('text/plain',name)
@@ -3574,11 +3748,22 @@ window.jobDrop=function(e){
     return
   }
 
+  // Location chip drop onto job — add as sub-job
+  if(dragSource&&dragSource.type==='location'){
+    const targetDate=e.currentTarget.dataset.date
+    const targetIdx=parseInt(e.currentTarget.dataset.idx)
+    if(targetDate&&!isNaN(targetIdx)){
+      addLocationToJob(targetDate,targetIdx,dragSource.locId)
+    }
+    dragSource=null
+    return
+  }
+
   // Crew drop onto job
   const targetDate=e.currentTarget.dataset.date
   const targetIdx=parseInt(e.currentTarget.dataset.idx)
   const name=e.dataTransfer.getData('text/plain')
-  if(!name||name==='jobblock'||!targetDate||isNaN(targetIdx)) return
+  if(!name||name==='jobblock'||name.startsWith('location:')||!targetDate||isNaN(targetIdx)) return
 
   const targetJob=(schedData[targetDate]||[])[targetIdx]
   if(!targetJob) return
