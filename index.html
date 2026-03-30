@@ -4216,11 +4216,15 @@ function renderImportPreview(){
     return `<div style="margin-bottom:10px"><strong style="color:var(--amber)">${esc(d.dateLabel)}</strong> <span style="color:var(--text-faint)">→ ${d.date}</span><br>`+
       d.jobs.map((j,ji)=>{
         const bg=j.color||DEFAULT_JOB_COLOR
+        const subsHtml=(j.subs||[]).map(s=>{
+          const sBg=s.color||DEFAULT_JOB_COLOR
+          return `<div style="margin-left:22px;margin-top:1px"><span style="display:inline-block;background:${sBg};color:#000;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600">↳ ${esc(s.title)}</span></div>`
+        }).join('')
         return `<div style="display:flex;align-items:center;gap:4px;margin:2px 0">
           <span onclick="removeImportJob(${di},${ji})" style="cursor:pointer;color:var(--red);font-size:12px;flex-shrink:0;width:14px;text-align:center" title="Remove this job">✕</span>
           <span style="display:inline-block;background:${bg};color:#000;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700">${esc(j.title)}</span>
           <span style="color:var(--text-faint);font-size:10px">${j.crew.length?j.crew.join(', '):'no crew'}</span>
-        </div>`
+        </div>${subsHtml}`
       }).join('')+
       `</div>`
   }).join('')
@@ -4308,10 +4312,17 @@ function parseSheetHtml(html){
       const isColored=isNonWhiteBg(bgColor)
 
       if(isColored){
-        if(currentJob) dayJobs.push(currentJob)
-        const jobType=colorToJobType(bgColor)
-        currentJob={title:upper,color:JOB_COLORS[jobType]||DEFAULT_JOB_COLOR,type:jobType,crew:[],notes:''}
-        totalJobs++
+        if(currentJob&&currentJob.crew.length===0){
+          // Consecutive colored cells with no crew between them — add as sub-location
+          if(!currentJob.subs) currentJob.subs=[]
+          const subType=colorToJobType(bgColor)
+          currentJob.subs.push({title:upper,type:subType,color:JOB_COLORS[subType]||DEFAULT_JOB_COLOR,notes:''})
+        } else {
+          if(currentJob) dayJobs.push(currentJob)
+          const jobType=colorToJobType(bgColor)
+          currentJob={title:upper,color:JOB_COLORS[jobType]||DEFAULT_JOB_COLOR,type:jobType,crew:[],subs:[],notes:''}
+          totalJobs++
+        }
       } else if(currentJob){
         if(text.length<40&&!/^\d+$/.test(text)){
           currentJob.crew.push(upper)
@@ -4545,7 +4556,7 @@ async function applySheetImport(parsed){
           crew:job.crew,
           notes:job.notes||'',
           region:'Middlefield',
-          subs:[],
+          subs:job.subs||[],
           sort_order:sortOrder
         }
         existing.push(newJob)
