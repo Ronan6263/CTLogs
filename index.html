@@ -969,7 +969,7 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
       <div class="modal-body" style="padding:20px 24px">
         <div style="margin-bottom:16px">
           <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:6px">Upload exported schedule file</label>
-          <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">In Google Sheets: <strong>File → Download → Web Page (.html, zipped)</strong> — then extract and upload the <code>.html</code> file. Or download as <strong>CSV</strong>. HTML preserves job colors.</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px">Export your Google Sheet as <strong>CSV</strong> (recommended) or <strong>Web Page (.html)</strong> for color support. Upload the file below.</div>
           <div style="display:flex;gap:8px;align-items:center">
             <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">
               Choose File
@@ -4189,23 +4189,49 @@ window.doSheetImport=async function(){
 
     _sheetImportData=parsed
 
-    status.style.color='var(--teal)'
-    status.textContent=`Found ${parsed.days.length} days, ${parsed.totalJobs} job blocks, ${parsed.totalCrew} crew assignments.`
-    preview.style.display='block'
-    preview.innerHTML=parsed.days.map(d=>{
-      return `<div style="margin-bottom:10px"><strong style="color:var(--amber)">${esc(d.dateLabel)}</strong> <span style="color:var(--text-faint)">→ ${d.date}</span><br>`+
-        d.jobs.map(j=>{
-          const bg=j.color||JOB_COLORS[j.type]||DEFAULT_JOB_COLOR
-          return `<span style="display:inline-block;background:${bg};color:#000;padding:1px 6px;border-radius:3px;margin:2px 0;font-size:10px;font-weight:700">${esc(j.title)}</span> <span style="color:var(--text-faint);font-size:10px">${j.crew.length?j.crew.join(', '):'no crew'}</span>`
-        }).join('<br>')+
-        `</div>`
-    }).join('')
-
+    renderImportPreview()
     document.getElementById('sheetImportBtn').textContent='Apply to Schedule'
   }catch(e){
     status.style.color='var(--red)'
     status.textContent='Error: '+e.message
   }
+}
+
+function renderImportPreview(){
+  if(!_sheetImportData) return
+  const parsed=_sheetImportData
+  const status=document.getElementById('sheetImportStatus')
+  const preview=document.getElementById('sheetImportPreview')
+  // Recount
+  let tj=0,tc=0
+  parsed.days.forEach(d=>{tj+=d.jobs.length;d.jobs.forEach(j=>{tc+=j.crew.length})})
+  parsed.totalJobs=tj;parsed.totalCrew=tc
+
+  status.style.display='block'
+  status.style.color='var(--teal)'
+  status.textContent=`${parsed.days.length} days, ${tj} job blocks, ${tc} crew assignments.`
+  preview.style.display='block'
+  preview.innerHTML=parsed.days.map((d,di)=>{
+    if(!d.jobs.length) return ''
+    return `<div style="margin-bottom:10px"><strong style="color:var(--amber)">${esc(d.dateLabel)}</strong> <span style="color:var(--text-faint)">→ ${d.date}</span><br>`+
+      d.jobs.map((j,ji)=>{
+        const bg=j.color||DEFAULT_JOB_COLOR
+        return `<div style="display:flex;align-items:center;gap:4px;margin:2px 0">
+          <span onclick="removeImportJob(${di},${ji})" style="cursor:pointer;color:var(--red);font-size:12px;flex-shrink:0;width:14px;text-align:center" title="Remove this job">✕</span>
+          <span style="display:inline-block;background:${bg};color:#000;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700">${esc(j.title)}</span>
+          <span style="color:var(--text-faint);font-size:10px">${j.crew.length?j.crew.join(', '):'no crew'}</span>
+        </div>`
+      }).join('')+
+      `</div>`
+  }).join('')
+}
+
+window.removeImportJob=function(dayIdx,jobIdx){
+  if(!_sheetImportData) return
+  const day=_sheetImportData.days[dayIdx]
+  if(!day) return
+  day.jobs.splice(jobIdx,1)
+  renderImportPreview()
 }
 
 // ── Parse HTML export (preserves cell colors) ────────────────────────────────
@@ -4261,31 +4287,20 @@ function parseSheetHtml(html){
   dayColumns.forEach(({colIdx,dateLabel,date})=>{
     const dayJobs=[]
     let currentJob=null
-    let stopParsing=false
 
     for(let r=headerRowIdx+1;r<rows.length;r++){
-      if(stopParsing) break
       const cells=[...rows[r].querySelectorAll('td,th')]
       const cell=cells[colIdx]
       if(!cell) continue
       const text=(cell.textContent||'').trim()
       if(!text){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
-        // Two consecutive empty rows = end of schedule data for this column
-        if(r+1<rows.length){
-          const nextCell=[...rows[r+1].querySelectorAll('td,th')][colIdx]
-          if(!nextCell||!(nextCell.textContent||'').trim()){
-            stopParsing=true
-          }
-        }
         continue
       }
 
-      // Skip known non-job section headers
       const upper=text.toUpperCase()
       if(isNonJobLabel(upper)){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
-        stopParsing=true
         continue
       }
 
@@ -4346,24 +4361,18 @@ function parseSheetCsv(csv){
   dayColumns.forEach(({colIdx,dateLabel,date})=>{
     const dayJobs=[]
     let currentJob=null
-    let emptyCount=0
 
     for(let r=headerRowIdx+1;r<rows.length;r++){
       const text=(rows[r][colIdx]||'').trim()
       if(!text){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
-        emptyCount++
-        // Two consecutive empty rows = end of schedule data
-        if(emptyCount>=2) break
         continue
       }
-      emptyCount=0
 
       const upper=text.toUpperCase()
-      // Skip known non-job section headers
       if(isNonJobLabel(upper)){
         if(currentJob){dayJobs.push(currentJob);currentJob=null}
-        break
+        continue
       }
 
       const isCrew=crewNames.has(upper)||crewNames.has(upper.split(/\s/)[0])
