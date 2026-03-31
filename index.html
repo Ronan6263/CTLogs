@@ -861,6 +861,11 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
           <button id="myJobsBtn" onclick="toggleMyJobs()" style="margin-left:4px">My Jobs</button>
           <button id="importSheetBtn" onclick="openSheetImport()" style="margin-left:4px;display:none">Import</button>
           <button id="clearWeekBtn" onclick="confirmClearWeek()" style="margin-left:4px;display:none">Clear Week</button>
+          <select id="viewAsSelect" onchange="setViewAs(this.value)" style="display:none;margin-left:4px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;color:var(--text-dim);font-family:var(--cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer">
+            <option value="">View As: Admin</option>
+            <option value="crew">View As: Crew</option>
+            <option value="guest">View As: Guest</option>
+          </select>
         </div>
       </div>
       <div id="schedGrid"></div>
@@ -1625,6 +1630,7 @@ window.navigateTo=function(page){
     renderHomeCards()
   } else if(page==='locations'){
     document.getElementById('locationsPage').classList.add('active')
+    if(_cardsDirty) renderCards(true)
   } else if(page==='schedule'){
     document.getElementById('schedulePage').classList.add('active')
     if(!schedLoaded) loadSchedule()
@@ -1633,6 +1639,7 @@ window.navigateTo=function(page){
     document.getElementById('crewToggleBtn').style.display=isSchedAdmin?'':'none'
     document.getElementById('importSheetBtn').style.display=isSchedAdmin?'':'none'
     document.getElementById('clearWeekBtn').style.display=isSchedAdmin?'':'none'
+    document.getElementById('viewAsSelect').style.display=isSchedAdmin?'':'none'
     if(!isSchedAdmin) document.getElementById('crewPanel').classList.remove('open')
   } else if(page==='dispatch'){
     document.getElementById('locationsPage').classList.add('active')
@@ -2016,7 +2023,7 @@ async function flushOfflineQueue(){
     }
   }
   if(failed===0){
-    locations=await fetchAll(); await resolveAllImageUrls(); renderCards()
+    locations=await fetchAll(); await resolveAllImageUrls(); renderCards(true)
     toast('All changes synced.')
   } else {
     toast(`${failed} change${failed!==1?'s':''} failed to sync.`,'err')
@@ -2075,7 +2082,7 @@ async function loadAndRender(){
   document.getElementById('mainContent').innerHTML='<div class="loader"><div class="spinner"></div>Loading…</div>'
   locations=await fetchAll()
   await resolveAllImageUrls()
-  renderCards()
+  renderCards(true)
 }
 
 // ── IMAGE STORAGE HELPERS ──────────────────────────────────────────────────────
@@ -2387,7 +2394,7 @@ window.refreshData=async function(){
   if(btn){ btn.disabled=true }
   locations=await fetchAll()
   await resolveAllImageUrls()
-  renderCards()
+  renderCards(true)
   toast('Data refreshed.')
   if(btn){ btn.disabled=false }
 }
@@ -2492,7 +2499,7 @@ window.saveLoc=async function(){
     await upsertLoc(payload)
     locations=await fetchAll()
     await resolveAllImageUrls()
-    closeLocModal(true); renderCards()
+    closeLocModal(true); renderCards(true)
     toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
     logAudit(editLocId?'UPDATED_FIELD_CARD':'CREATED_FIELD_CARD',title||addr)
   }catch(e){toast('Save failed: '+e.message,'err')}
@@ -2552,7 +2559,7 @@ window.deleteLoc=async function(){
   try{
     await deleteLoc_db(curLocId)
     locations=locations.filter(l=>l.id!==curLocId)
-    closeDetailModal(); renderCards(); toast('Location deleted.')
+    closeDetailModal(); renderCards(true); toast('Location deleted.')
     logAudit('DELETED_FIELD_CARD',delTitle)
   }catch(e){toast('Delete failed: '+e.message,'err')}
 }
@@ -2652,7 +2659,7 @@ window.saveVisit=async function(){
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
     loc.visits=visits
     await resolveAllImageUrls()
-    closeVisitModal(true); renderDetail(); renderCards()
+    closeVisitModal(true); renderDetail(); renderCards(true)
     toast(editVisitId?'Visit updated.':'Visit logged.')
     logAudit(editVisitId?'UPDATE_VISIT':'CREATE_VISIT',(loc.title||loc.address||'')+' - '+document.getElementById('vDate').value)
   }catch(e){toast('Save failed: '+e.message,'err')}
@@ -2665,7 +2672,7 @@ window.deleteVisit=async function(vid){
   const visits=(loc.visits||[]).filter(v=>v.id!==vid)
   try{
     await upsertLoc({id:curLocId,visits,updated_at:new Date().toISOString()})
-    loc.visits=visits; renderDetail(); renderCards(); toast('Visit deleted.')
+    loc.visits=visits; renderDetail(); renderCards(true); toast('Visit deleted.')
     logAudit('DELETE_VISIT',(loc.title||loc.address||'')+' visit '+vid.slice(0,8))
   }catch(e){toast('Delete failed: '+e.message,'err')}
 }
@@ -2754,7 +2761,16 @@ function updateCollapseBtn(){
 
 // ── RENDER CARDS ──────────────────────────────────────────────────────────────
 let _lastCardsHtml=''
-function renderCards(){
+let _cardsDirty=false // true = data changed in background, re-render on next navigation
+const _isMobile=('ontouchstart' in window)||window.innerWidth<=600
+
+function renderCards(userInitiated){
+  // On mobile, skip background re-renders entirely. Mark dirty for next user navigation.
+  if(_isMobile&&!userInitiated&&_lastCardsHtml){
+    _cardsDirty=true
+    return
+  }
+  _cardsDirty=false
   const q=document.getElementById('searchInput').value.toLowerCase().trim()
   const filtered=locations.filter(l=>{
     if(!q) return true
@@ -2952,6 +2968,24 @@ window.schedNavWeek=function(dir){
   saveScheduleData()
 }
 let myJobsActive=false
+let _viewAsOverride='' // '' = no override (use real role), 'crew', 'guest'
+
+function getEffectiveRole(){
+  if(_viewAsOverride&&currentProfile?.role==='admin') return _viewAsOverride
+  return currentProfile?.role||'guest'
+}
+
+window.setViewAs=function(val){
+  _viewAsOverride=val
+  renderSchedule()
+  // Show/hide admin controls based on effective role
+  const eff=getEffectiveRole()
+  const showAdmin=eff==='admin'
+  document.getElementById('crewToggleBtn').style.display=showAdmin?'':'none'
+  document.getElementById('importSheetBtn').style.display=showAdmin?'':'none'
+  document.getElementById('clearWeekBtn').style.display=showAdmin?'':'none'
+  if(!showAdmin) document.getElementById('crewPanel').classList.remove('open')
+}
 window.toggleMyJobs=function(){
   myJobsActive=!myJobsActive
   const btn=document.getElementById('myJobsBtn')
@@ -3162,7 +3196,7 @@ function getJobGlobalIdx(dateKey,job){
 
 function renderSchedule(){
   const grid=document.getElementById('schedGrid')
-  const isAdmin=currentProfile?.role==='admin'
+  const isAdmin=getEffectiveRole()==='admin'
   const dayNames=['MON','TUE','WED','THU','FRI','SAT','SUN']
   const todayStr=isoDate(new Date())
 
@@ -3383,7 +3417,7 @@ window.removeSub=function(dateKey,idx,si){
 window.openSubNote=function(dateKey,idx,si,event){
   const job=(schedData[dateKey]||[])[idx]
   if(!job||!job.subs||!job.subs[si]) return
-  const isAdmin=currentProfile?.role==='admin'
+  const isAdmin=getEffectiveRole()==='admin'
   const sub=job.subs[si]
   const popup=document.getElementById('jobNotePopup')
   const textarea=document.getElementById('jobNoteText')
@@ -3482,7 +3516,7 @@ function buildLocLinkHtml(locId){
 window.openJobNote=function(dateKey,idx,event){
   const job=(schedData[dateKey]||[])[idx]
   if(!job) return
-  const isAdmin=currentProfile?.role==='admin'
+  const isAdmin=getEffectiveRole()==='admin'
   const popup=document.getElementById('jobNotePopup')
   const textarea=document.getElementById('jobNoteText')
   const titleEl=document.getElementById('jobNoteTitle')
@@ -4902,7 +4936,7 @@ document.addEventListener('keydown',e=>{
   })
 })
 document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB()})
-document.getElementById('searchInput').addEventListener('input',()=>renderCards())
+document.getElementById('searchInput').addEventListener('input',()=>renderCards(true))
 
 // ── AUTH STATE LISTENER + INIT ────────────────────────────────────────────────
 sb.auth.onAuthStateChange(async(event,session)=>{
