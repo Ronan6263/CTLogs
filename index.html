@@ -180,6 +180,7 @@ html.light ::-webkit-scrollbar-thumb{background:var(--border-hi)}
 #clearWeekBtn:hover{border-color:var(--red);background:rgba(224,85,64,0.1)}
 #clearWeekBtn.confirming{background:var(--red);color:#fff;border-color:var(--red)}
 .sched-job.dimmed{opacity:0.2;pointer-events:auto}
+@media(max-width:600px){.sched-job.dimmed{display:none}}
 .sched-nav .sched-week-label{font-family:var(--mono);font-size:13px;color:var(--text-dim);min-width:180px;text-align:center}
 
 /* Region section — stacked vertically, collapsible */
@@ -277,7 +278,7 @@ html.light .crew-chip.super{background:#fef3cd;border-color:#d4a017;color:#7a5c0
   .sched-shell{padding:16px 8px 200px}
   .sched-header{flex-direction:column;align-items:flex-start;gap:10px}
   .sched-nav{margin-left:0;width:100%;justify-content:space-between;flex-wrap:wrap}
-  .sched-nav .sched-week-label{min-width:0;font-size:12px;flex:1;text-align:center;order:10;width:100%;margin-top:2px}
+  .sched-nav .sched-week-label{min-width:0;font-size:12px;text-align:center;order:-1;width:100%;margin-bottom:4px}
   .sched-grid{grid-template-columns:1fr!important;gap:8px;background:transparent;border:none;border-radius:0}
   .sched-day{border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
   .sched-day-head{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none}
@@ -1142,17 +1143,6 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
       <div class="equip-display" id="dEquip"></div>
       <div class="sec-title">Site Images</div>
       <div class="det-images" id="dImages"></div>
-    </div>
-    <hr class="div" />
-    <div class="det-section">
-      <div class="sec-title">Visit Log</div>
-      <div class="visit-list" id="visitList"></div>
-      <div style="margin-top:14px" id="logVisitWrap">
-        <button class="btn btn-teal btn-sm" onclick="openNewVisit()">
-          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          Log New Visit
-        </button>
-      </div>
     </div>
     <div class="det-foot">
       <button class="btn btn-danger btn-sm" id="deleteLocBtn" onclick="confirmDeleteLoc()">Delete Location</button>
@@ -2540,7 +2530,6 @@ function renderDetail(){
   // Show/hide action buttons based on role
   document.getElementById('deleteLocBtn').style.display=isAdmin?'':'none'
   document.getElementById('editLocBtn').style.display=canWrite?'':'none'
-  document.getElementById('logVisitWrap').style.display=canWrite?'':'none'
 
   const imgEl=document.getElementById('dImages')
   const imgs=loc.images||[]
@@ -2555,30 +2544,6 @@ function renderDetail(){
   const existingSps=[...imgEl.querySelectorAll('img[data-sp]')].map(i=>i.dataset.sp).join(',')
   const newSps=imgs.map(i=>i.storagePath||i.name||'').join(',')
   if(existingSps!==newSps||!imgs.length) imgEl.innerHTML=imgHtml
-
-  const vEl=document.getElementById('visitList')
-  const visits=[...(loc.visits||[])].sort((a,b)=>{
-    const aEnd=a.date_end||a.date, bEnd=b.date_end||b.date
-    return aEnd>bEnd?-1:aEnd<bEnd?1:0
-  })
-  vEl.innerHTML=visits.length
-    ?visits.map(v=>`
-        <div class="vitem" id="vi-${v.id}" onclick="openVDetail('${v.id}')">
-          <div class="vitem-left">
-            <div class="vdate">${fmtDate(v.date,v.date_end)}</div>
-            <div class="vcrew"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${esc(v.tech||'Cody & Sal')}</div>
-          </div>
-          ${canWrite?`<div class="vitem-right" onclick="event.stopPropagation()">
-            <button class="btn btn-ghost btn-sm" onclick="editVisit('${v.id}')">✏ Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="showDelVisit('${v.id}')">Delete</button>
-          </div>`:''}
-        </div>
-        <div class="confirm-bar" id="cv-${v.id}">
-          Delete this visit?
-          <button class="btn btn-danger btn-sm" onclick="deleteVisit('${v.id}')">Yes</button>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cv-${v.id}').classList.remove('show')">No</button>
-        </div>`).join('')
-    :'<div style="color:var(--text-faint);font-size:13px;padding:10px 0">No visits recorded yet.</div>'
 }
 window.confirmDeleteLoc=function(){ document.getElementById('delLocBar').classList.add('show') }
 window.deleteLoc=async function(){
@@ -2824,7 +2789,8 @@ function renderCards(){
         const lastVisitDate=lastVisit?(lastVisit.date_end||lastVisit.date):null
         const neverVisited=visits.length===0
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
-        const thumbs=(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${imgSrc(i)}" alt="" />`).join('')
+        const isMobileView=window.innerWidth<=600
+        const thumbs=isMobileView?'':(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${imgSrc(i)}" alt="" />`).join('')
         return `<div class="card" onclick="openDetail('${loc.id}')">
           <div class="card-stripe"></div>
           <div class="card-body">
