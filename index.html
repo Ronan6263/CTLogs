@@ -1901,9 +1901,9 @@ function setupRealtime(){
       locDebounce=setTimeout(async()=>{
         if(isLocalWrite()) return
         const oldUrlMap=buildImageUrlCache(locations)
-        const oldHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,v:(l.visits||[]).length,im:(l.images||[]).length})))
+        const oldHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,im:(l.images||[]).length})))
         locations=await fetchAll()
-        const newHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,v:(l.visits||[]).length,im:(l.images||[]).length})))
+        const newHash=JSON.stringify(locations.map(l=>({id:l.id,t:l.title,a:l.address,d:l.description,tg:l.tags,im:(l.images||[]).length})))
         applyImageUrlCache(locations,oldUrlMap)
         await resolveAllImageUrls()
         if(currentPage==='locations'&&oldHash!==newHash) renderCards()
@@ -2779,15 +2779,6 @@ function renderCards(){
       })
       const isCollapsed=collapsedStates.has(state)
       const cardsHtml=locs.map(loc=>{
-        const visits=loc.visits||[]
-        const lastVisit=visits.length
-          ? [...visits].sort((a,b)=>{
-              const aEnd=a.date_end||a.date, bEnd=b.date_end||b.date
-              return aEnd>bEnd?-1:aEnd<bEnd?1:0
-            })[0]
-          : null
-        const lastVisitDate=lastVisit?(lastVisit.date_end||lastVisit.date):null
-        const neverVisited=visits.length===0
         const tags=(loc.tags||[]).slice(0,3).map((t,i)=>`<span class="tag ${i===0?'tag-a':i===1?'tag-t':''}">${esc(t)}</span>`).join('')
         const isMobileView=window.innerWidth<=600
         const thumbs=isMobileView?'':(loc.images||[]).slice(0,4).map(i=>`<img class="card-thumb" src="${imgSrc(i)}" alt="" />`).join('')
@@ -2800,10 +2791,6 @@ function renderCards(){
             ${loc.description?`<div class="card-desc">${esc(loc.description)}</div>`:''}
             <div class="card-foot">
               <div class="card-tags">${tags}</div>
-              <div style="text-align:right">
-                <div class="visit-badge ${neverVisited?'never':''}"><span>${visits.length}</span> visit${visits.length!==1?'s':''}</div>
-                ${lastVisitDate?`<div class="last-visit">Last: ${fmtDate(lastVisitDate)}</div>`:`<div class="last-visit" style="color:var(--red)">Never visited</div>`}
-              </div>
             </div>
           </div>
           ${thumbs?`<div class="card-thumbs">${thumbs}</div>`:''}
@@ -2826,14 +2813,13 @@ function renderCards(){
     content.innerHTML=newHtml
     if(filtered.length) updateCollapseBtn()
   }
-  const totalVisits=locations.reduce((s,l)=>s+(l.visits||[]).length,0)
   const stateCount=new Set(locations.map(l=>extractState(l.address))).size
-  document.getElementById('statsRow').innerHTML=`
+  const newStats=`
     <div class="stat-chip"><strong>${locations.length}</strong> Locations</div>
-    <div class="stat-chip"><strong>${totalVisits}</strong> Total Visits</div>
     <div class="stat-chip"><strong>${stateCount}</strong> State${stateCount!==1?'s':''}</div>
-    ${locations.length?`<div class="stat-chip">Last added: <strong>${fmtDate((locations[0].created_at||'').slice(0,10))}</strong></div>`:''}
   `
+  const statsEl=document.getElementById('statsRow')
+  if(statsEl.innerHTML!==newStats) statsEl.innerHTML=newStats
 }
 
 // ── PDF EXPORT ────────────────────────────────────────────────────────────────
