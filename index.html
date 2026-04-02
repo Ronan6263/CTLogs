@@ -1100,29 +1100,6 @@ if(localStorage.getItem('ctlogs_theme')==='light')document.documentElement.class
         </div>
         <div class="preview-grid" id="lImgPreview"></div>
       </div>
-      <div class="fg" id="firstVisitToggleWrap">
-        <div class="visit-toggle-row" onclick="toggleFirstVisit()">
-          <input type="checkbox" id="firstVisitCheck" onclick="event.stopPropagation()" onchange="toggleFirstVisit(true)" />
-          <span class="visit-toggle-label">Also log a visit for today</span>
-        </div>
-        <div class="first-visit-block" id="firstVisitBlock">
-          <div class="fvtitle">First Visit Details</div>
-          <div class="frow">
-            <div class="fg"><label>Date</label><input type="date" id="fvDate" /></div>
-            <div class="fg"><label>Crew</label><input type="text" id="fvTech" placeholder="Cody &amp; Sal" /></div>
-          </div>
-          <div class="fg"><label>Work Performed / Notes</label><textarea id="fvNotes" placeholder="Chemical dosing, cleaning, inspection findings…" style="min-height:100px"></textarea></div>
-          <div class="fg">
-            <label>Visit Photos</label>
-            <div class="upload-zone">
-              <div class="uico">📸</div>
-              <div class="ulbl">Before/after photos, readings…</div>
-              <input type="file" id="fvImgInput" multiple accept="image/*" onchange="stageImgs('fv',this)" />
-            </div>
-            <div class="preview-grid" id="fvImgPreview"></div>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeLocModal()">Cancel</button>
@@ -2413,29 +2390,16 @@ window.applyTemplate=function(){
 }
 
 // ── FIRST VISIT TOGGLE ────────────────────────────────────────────────────────
-window.toggleFirstVisit=function(fromCheckbox){
-  const cb=document.getElementById('firstVisitCheck')
-  if(!fromCheckbox) cb.checked=!cb.checked
-  document.getElementById('firstVisitBlock').classList.toggle('open',cb.checked)
-}
-
 // ── LOCATION MODAL ────────────────────────────────────────────────────────────
 window.openNewLocation=function(){
   if(currentProfile?.role==='guest') return
-  editLocId=null; locImgs=[]; fvImgs=[]; markClean(); resetEquip(); resetContacts()
+  editLocId=null; locImgs=[]; markClean(); resetEquip(); resetContacts()
   document.getElementById('lTitle').value=''
   document.getElementById('lSiteId').value=''
   document.getElementById('lAddress').value=''
   document.getElementById('lDesc').value=''
   document.getElementById('lTags').value=''
   document.getElementById('lImgPreview').innerHTML=''
-  document.getElementById('fvDate').value=today()
-  document.getElementById('fvTech').value='Cody & Sal'
-  document.getElementById('fvNotes').value=''
-  document.getElementById('fvImgPreview').innerHTML=''
-  document.getElementById('firstVisitCheck').checked=false
-  document.getElementById('firstVisitBlock').classList.remove('open')
-  document.getElementById('firstVisitToggleWrap').style.display=''
   document.getElementById('templateBar').style.display=''
   document.getElementById('locModalTitle').textContent='New Location'
   populateTemplateSelect()
@@ -2455,7 +2419,7 @@ window.closeLocModal=function(force){
 window.editCurLoc=function(){
   if(currentProfile?.role==='guest') return
   const loc=locations.find(l=>l.id===curLocId); if(!loc) return
-  editLocId=loc.id; locImgs=[...(loc.images||[])]; fvImgs=[]; markClean()
+  editLocId=loc.id; locImgs=[...(loc.images||[])]; markClean()
   document.getElementById('lTitle').value=loc.title||''
   document.getElementById('lSiteId').value=loc.site_id||''
   document.getElementById('lAddress').value=loc.address||''
@@ -2464,7 +2428,6 @@ window.editCurLoc=function(){
   setEquipData(loc.equipment||{})
   setContactsData(loc.contacts||[])
   renderPrev('loc','lImgPreview')
-  document.getElementById('firstVisitToggleWrap').style.display='none'
   document.getElementById('templateBar').style.display='none'
   document.getElementById('locModalTitle').textContent='Edit Location'
   document.getElementById('detOverlay').classList.remove('open')
@@ -2483,24 +2446,13 @@ window.saveLoc=async function(){
   try{
     // Upload location images to storage
     const uploadedLocImgs=await uploadStagedImages(locImgs,`locations/${locId}`)
-    // Upload first-visit images if applicable
-    let visits=[]
-    if(!editLocId&&document.getElementById('firstVisitCheck').checked){
-      const fvNotes=document.getElementById('fvNotes').value.trim()
-      if(fvNotes){
-        const vid=crypto.randomUUID()
-        const uploadedFvImgs=await uploadStagedImages(fvImgs,`visits/${locId}/${vid}`)
-        visits=[{id:vid,date:document.getElementById('fvDate').value,tech:document.getElementById('fvTech').value.trim(),notes:fvNotes,images:uploadedFvImgs}]
-      }
-    }
     btn.textContent='Saving…'
     const payload={id:locId,title:title||addr,site_id:document.getElementById('lSiteId').value.trim()||null,address:addr||null,description:document.getElementById('lDesc').value.trim()||null,tags,images:uploadedLocImgs,equipment:getEquipData(),contacts:locContacts.filter(c=>c.name||c.phone),updated_at:new Date().toISOString()}
-    if(!editLocId) payload.visits=visits
     await upsertLoc(payload)
     locations=await fetchAll()
     await resolveAllImageUrls()
     closeLocModal(true); renderCards(true)
-    toast(editLocId?'Location updated.':(visits.length?'Location + visit saved.':'Location saved.'))
+    toast(editLocId?'Location updated.':'Location saved.')
     logAudit(editLocId?'UPDATED_FIELD_CARD':'CREATED_FIELD_CARD',title||addr)
   }catch(e){toast('Save failed: '+e.message,'err')}
   btn.disabled=false; btn.textContent='Save Location'
